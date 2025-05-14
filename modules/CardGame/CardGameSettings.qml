@@ -1,0 +1,115 @@
+import QtQuick 2.15
+import QtQuick.Controls 2.15
+import QtQuick.Layouts 1.15
+import QtQuick.Shapes 1.15
+
+Item {
+    id: root
+    anchors.fill: parent
+
+    // Входные параметры
+    property var moduleData
+    property var stackViewRef
+
+    // Выбранная сложность
+    property int difficulty: (moduleData && typeof moduleData.difficulty === "number") ? moduleData.difficulty : 1
+
+    ColumnLayout {
+        anchors.fill: parent
+        anchors.margins: 20
+        spacing: 30
+
+        Label {
+            text: "Выберите уровень сложности"
+            font.pixelSize: 22
+            Layout.alignment: Qt.AlignHCenter
+        }
+
+        RowLayout {
+            Layout.alignment: Qt.AlignHCenter
+            spacing: 30
+
+            // Левая кнопка
+            MouseArea {
+                width: 50
+                height: 50
+                onClicked: {
+                    difficulty--
+                    if (difficulty < 1) difficulty = 3
+                }
+
+                Shape {
+                    anchors.fill: parent
+                    ShapePath {
+                        strokeWidth: 0
+                        fillColor: "gray"
+                        startX: 35; startY: 10
+                        PathLine { x: 15; y: 25 }
+                        PathLine { x: 35; y: 40 }
+                        PathLine { x: 35; y: 10 }
+                        //PathClose {}
+                    }
+                }
+            }
+
+            Rectangle {
+                width: 140
+                height: 60
+                color: "#eeeeee"
+                radius: 10
+                border.color: "black"
+
+                Text {
+                    anchors.centerIn: parent
+                    text: difficulty === 1 ? "Легкая" : (difficulty === 2 ? "Средняя" : "Сложная")
+                    font.pixelSize: 32
+                    color: "black"
+                }
+            }
+
+            // Правая кнопка
+            // Правая кнопка (исправленная, треугольник вправо)
+            MouseArea {
+                width: 50
+                height: 50
+                onClicked: {
+                    difficulty++
+                    if (difficulty > 3) difficulty = 1
+                }
+
+                Shape {
+                    anchors.fill: parent
+                    ShapePath {
+                        strokeWidth: 0
+                        fillColor: "gray"
+                        startX: 15; startY: 10
+                        PathLine { x: 35; y: 25 }
+                        PathLine { x: 15; y: 40 }
+                    }
+                }
+            }
+        }
+
+        Button {
+            text: "Продолжить"
+            Layout.alignment: Qt.AlignHCenter
+            onClicked: {
+                if (moduleData && typeof moduleData.setDifficulty === "function") {
+                    moduleData.setDifficulty(difficulty)
+                    stackViewRef.push(moduleData.qmlComponentUrl, {
+                        moduleData: moduleData,
+                        stackViewRef: stackViewRef
+                    })
+                } else {
+                    console.warn("Ошибка: moduleData или setDifficulty не определены")
+                }
+            }
+        }
+
+        Button {
+            text: "← Назад"
+            Layout.alignment: Qt.AlignHCenter
+            onClicked: stackViewRef.pop()
+        }
+    }
+}

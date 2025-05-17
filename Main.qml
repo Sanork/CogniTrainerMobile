@@ -13,10 +13,10 @@ ApplicationWindow {
         id: rootItem
         anchors.fill: parent
         focus: true
-        // Печатаем в консоль, чтобы проверить, что вывод работает
-                Component.onCompleted: {
-                    console.log("Приложение запущено")
-                }
+
+        Component.onCompleted: {
+            console.log("Приложение запущено")
+        }
 
         Keys.onReleased: {
             if (event.key === Qt.Key_Back) {
@@ -34,7 +34,6 @@ ApplicationWindow {
             anchors.fill: parent
             initialItem: categoryPage
 
-            // Страница с категориями
             Component {
                 id: categoryPage
                 Item {
@@ -43,71 +42,96 @@ ApplicationWindow {
 
                     ColumnLayout {
                         anchors.fill: parent
-                        spacing: 10
-                        anchors.margins: 20
+                        spacing: 0
 
-                        Label {
-                            text: "Выберите категорию:"
-                            font.pixelSize: 20
-                            Layout.alignment: Qt.AlignHCenter
+                        // Верхняя панель
+                        Rectangle {
+                            id: topBar
+                            height: 56
+                            width: parent.width
+                            color: "#f0f0f0"
+                            border.color: "#cccccc"
+                            Layout.fillWidth: true
+
+
+
+                            Label {
+                                anchors.centerIn: parent
+                                text: "Выберите категорию:"
+                                font.pixelSize: 20
+                            }
                         }
 
+                        Item {
+                                Layout.preferredHeight: 8
+                            }
+
+
+
+                        // Список категорий с прокруткой
                         ListView {
+                            id: listView
                             Layout.fillWidth: true
                             Layout.fillHeight: true
                             model: categoryManager.categories()
-                            spacing: 10
+                            spacing: 12
+                            clip: true
 
-                            delegate: Rectangle {
-                                width: parent.width
-                                height: 50
-                                color: "lightgray"
-                                radius: 10
-                                Layout.fillWidth: true
+                            delegate: Item {
+                                width: listView.width
+                                height: 72  // немного выше, чтобы учесть внешние отступы
 
-                                RowLayout {
-                                    anchors.fill: parent
-                                    anchors.margins: 10
-                                    spacing: 10
+                                Rectangle {
+                                    anchors.left: parent.left
+                                    anchors.right: parent.right
+                                    anchors.leftMargin: 16  // ← отступ слева
+                                    anchors.rightMargin: 16
+                                    height: 60
+                                    color: "#dcdcdc"
+                                    radius: 10
 
-                                    Image {
-                                        id: categoryIcon
-                                        source: modelData.icon
-                                        sourceSize.width: 30
-                                        sourceSize.height: 30
-                                        fillMode: Image.PreserveAspectFit
+                                    RowLayout {
+                                        anchors.fill: parent
+                                        anchors.margins: 12
+                                        spacing: 12
 
-                                        onStatusChanged: {
-                                            console.log("Image status: " + categoryIcon.status)
-                                            if (categoryIcon.status === Image.Error) {
-                                                console.log("Error loading image!")
+                                        Image {
+                                            id: categoryIcon
+                                            source: modelData.icon
+                                            sourceSize.width: 32
+                                            sourceSize.height: 32
+                                            fillMode: Image.PreserveAspectFit
+
+                                            onStatusChanged: {
+                                                if (categoryIcon.status === Image.Error)
+                                                    console.log("Ошибка загрузки иконки:", modelData.icon)
                                             }
                                         }
-                                    }
 
-                                    Text {
-                                        text: modelData.name      // ← это тоже правильно
-                                        font.pixelSize: 16
-                                        verticalAlignment: Text.AlignVCenter
-                                        Layout.alignment: Qt.AlignVCenter
-                                    }
+                                        Text {
+                                            text: modelData.name
+                                            font.pixelSize: 16
+                                            Layout.alignment: Qt.AlignVCenter
+                                        }
 
-                                    Item { Layout.fillWidth: true }
+                                        Item { Layout.fillWidth: true }
 
-                                    Button {
-                                        text: "Открыть"
-                                        onClicked: {
-                                            const modulesForCategory = moduleRegistry.modules.filter(m => m.category === modelData.name);
-                                            stackView.push("qrc:/qml/CategoryModulesView.qml", {
-                                                categoryName: modelData.name,
-                                                modulesModel: modulesForCategory,
-                                                stackViewRef: stackView
-                                            });
+                                        MouseArea {
+                                            anchors.fill: parent
+                                            onClicked: {
+                                                const modulesForCategory = moduleRegistry.modules.filter(m => m.category === modelData.name)
+                                                stackView.push("qrc:/qml/CategoryModulesView.qml", {
+                                                    categoryName: modelData.name,
+                                                    modulesModel: modulesForCategory,
+                                                    stackViewRef: stackView
+                                                })
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
+
                     }
                 }
             }

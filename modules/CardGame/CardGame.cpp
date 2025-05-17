@@ -31,7 +31,7 @@ QString CardGame::category() const {
 
 // Переопределяем метод для иконки
 QUrl CardGame::iconUrl() const {
-    return QUrl("qrc:/icons/circle.png");
+    return QUrl("qrc:/modules/CardGame/СardGameIcon.png");
 }
 
 

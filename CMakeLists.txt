@@ -30,7 +30,10 @@ qt_add_resources(appCogniTrainerMobile "app_qml"
 qt_add_resources(appCogniTrainerMobile "app_modules"
     PREFIX "/"
     FILES
-        modules/
+        modules/CircleGame/
+        modules/CardGame/
+        modules/SimonGame/
+        modules/StroopGame/
 )
 
 
@@ -48,6 +51,17 @@ qt_add_qml_module(appCogniTrainerMobile
         SOURCES core/ModuleRegistry.h core/ModuleRegistry.cpp
         SOURCES core/Category.h
         SOURCES core/CategoryManager.h core/CategoryManager.cpp
+        SOURCES modules/CardGame/CardGame.h modules/CardGame/CardGame.cpp
+        QML_FILES modules/CardGame/CardGame.qml
+        QML_FILES modules/CardGame/CardGameSettings.qml
+        QML_FILES modules/CardGame/Card.qml
+        SOURCES modules/SimonGame/SimonGame.h modules/SimonGame/SimonGame.cpp
+        QML_FILES modules/SimonGame/SimonGameSettings.qml
+        QML_FILES modules/SimonGame/SimonGame.qml
+        QML_FILES modules/SimonGame/SimonButton.qml
+        SOURCES modules/StroopGame/StroopGame.h modules/StroopGame/StroopGame.cpp
+        QML_FILES modules/StroopGame/StroopGameSettings.qml
+        QML_FILES modules/StroopGame/StroopGame.qml
         #QML_FILES CategoryModulesView.qml
         #QML_FILES modules/CircleGame/CircleGameSettings.qml
         #RESOURCES resources.qrc

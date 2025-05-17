@@ -10,6 +10,7 @@ int main(int argc, char *argv[])
     QGuiApplication app(argc, argv);
 
     QQmlApplicationEngine engine;
+    //QCoreApplication::setAttribute(Qt::AA_UseSoftwareOpenGL);
 
     ModuleRegistry moduleRegistry;
     moduleRegistry.loadModules();

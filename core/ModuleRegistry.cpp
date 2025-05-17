@@ -1,5 +1,8 @@
 #include "ModuleRegistry.h"
-#include "../modules/CircleGame/CircleGame.h"  // Статически включённый модуль
+#include "../modules/CircleGame/CircleGame.h"
+#include "../modules/CardGame/CardGame.h"
+#include "../modules/SimonGame/SimonGame.h"
+#include "../modules/StroopGame/StroopGame.h"
 
 ModuleRegistry::ModuleRegistry(QObject *parent)
     : QObject(parent)
@@ -29,6 +32,10 @@ void ModuleRegistry::tryAddModule(BaseModule* module)
 
 void ModuleRegistry::loadModules()
 {
-    tryAddModule(new CircleGameModule(this));  
+    tryAddModule(new CircleGameModule(this));
+    tryAddModule(new CardGame(this));
+    tryAddModule(new SimonGame(this));
+    tryAddModule(new StroopGame(this));
+
 }
 

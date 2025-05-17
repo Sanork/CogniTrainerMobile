@@ -5,69 +5,112 @@ import QtQuick.Layouts 1.15
 Item {
     property string categoryName
     property var modulesModel
-    property var stackViewRef: null // Убираем alias и объявляем, как обычное свойство
+    property var stackViewRef: null
 
     width: parent.width
     height: parent.height
 
     ColumnLayout {
         anchors.fill: parent
-        spacing: 10
-        anchors.margins: 20
-        Button {
-                            text: "← Назад"
-                            onClicked: {
-                                stackView.pop(); // Возвращаемся к предыдущей странице
-                            }
-                        }
+        spacing: 0
 
-        Label {
-            text: "Модули категории: " + categoryName
-            font.pixelSize: 20
-            Layout.alignment: Qt.AlignHCenter
+        // Верхняя панель
+        Rectangle {
+            height: 50
+            width: parent.width
+            color: "#f0f0f0"
+            Layout.fillWidth: true
+
+            RowLayout {
+                anchors.fill: parent
+                anchors.margins: 8
+                spacing: 12
+
+                ToolButton {
+                    text: "\u2190"
+                    font.pixelSize: 30
+                    onClicked: stackViewRef.pop()
+                }
+
+                Label {
+                    text: categoryName
+                    font.pixelSize: 18
+                    Layout.alignment: Qt.AlignVCenter
+                }
+
+                Item { Layout.fillWidth: true }
+            }
         }
 
-        ListView {
+        // Отступ после верхней панели
+        Item {
+            Layout.preferredHeight: 8
+        }
+
+        // Прокручиваемый список
+        ScrollView {
             Layout.fillWidth: true
             Layout.fillHeight: true
-            model: modulesModel
-            spacing: 10
-            delegate: Rectangle {
+
+            ListView {
+                id: listView
                 width: parent.width
-                height: 50
-                color: "lightgray"
-                radius: 10
-                Layout.fillWidth: true
+                height: parent.height
+                model: modulesModel
+                spacing: 12
+                clip: true
 
-                RowLayout {
-                    anchors.fill: parent
-                    anchors.margins: 10
-                    spacing: 10
+                delegate: Item {
+                    width: listView.width
+                    height: 72
 
-                    Text {
-                        text: modelData.name
-                        font.pixelSize: 16
-                        verticalAlignment: Text.AlignVCenter
-                        Layout.alignment: Qt.AlignVCenter
-                    }
+                    Rectangle {
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        anchors.leftMargin: 16
+                        anchors.rightMargin: 16
+                        height: 60
+                        radius: 10
+                        color: "#dcdcdc"
 
-                    Item {
-                        Layout.fillWidth: true
-                    }
+                        RowLayout {
+                            anchors.fill: parent
+                            anchors.margins: 12
+                            spacing: 12
 
-                    Button {
-                        text: "Открыть"
-                        onClicked: {
+                            Image {
+                                            id: moduleIcon
+                                            source: modelData.iconUrl
+                                            sourceSize.width: 32
+                                            sourceSize.height: 32
+                                            fillMode: Image.PreserveAspectFit
 
-                            var moduleFile = modelData.qmlSettingsUrl ;
+                                            onStatusChanged: {
+                                                if (moduleIcon.status === Image.Error)
+                                                    console.log("Ошибка загрузки иконки:", modelData.icon)
+                                            }
+                                        }
 
-                            stackViewRef.push(moduleFile, {
-                                moduleData: modelData,  // Передаем данные модуля
-                                stackViewRef: stackViewRef  // Передаем stackView, если нужно будет переходить с этого экрана
-                            });
+                            Text {
+                                text: modelData.name
+                                font.pixelSize: 16
+                                Layout.alignment: Qt.AlignVCenter
+                            }
+
+                            Item { Layout.fillWidth: true }
+
+                            MouseArea {
+                                anchors.fill: parent
+                                onClicked: {
+                                    var moduleFile = modelData.qmlSettingsUrl
+                                    stackViewRef.push(moduleFile, {
+                                        moduleData: modelData,
+                                        stackViewRef: stackViewRef
+                                    })
+                                }
+                            }
                         }
                     }
-
                 }
             }
         }

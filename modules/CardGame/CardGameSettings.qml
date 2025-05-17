@@ -14,14 +14,54 @@ Item {
     // Выбранная сложность
     property int difficulty: (moduleData && typeof moduleData.difficulty === "number") ? moduleData.difficulty : 1
 
+
+    property int gridColumns: {
+        switch (difficulty) {
+            case 1: return 2;
+            case 2: return 4;
+            case 3: return 4;
+            case 4: return 4;
+            case 5: return 5;
+            case 6: return 5;
+            default: return 4;
+        }
+    }
+    property int gridRows: {
+        switch (difficulty) {
+            case 1: return 3;
+            case 2: return 3;
+            case 3: return 4;
+            case 4: return 6;
+            case 5: return 6;
+            case 6: return 8;
+            default: return 4;
+        }
+    }
+
+    ToolButton {
+        text: "\u2190"
+        font.pixelSize: 30
+        onClicked: stackView.pop()
+    }
+
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: 20
         spacing: 30
 
-        Label {
-            text: "Выберите уровень сложности"
+        Text {
+            text: moduleData.description
             font.pixelSize: 22
+            wrapMode: Text.WordWrap
+            horizontalAlignment: Text.AlignHCenter
+            Layout.alignment: Qt.AlignHCenter
+            Layout.preferredWidth: root.width * 0.8  // или колонка.width * 0.8, если доступно
+            width: root.width * 0.8
+        }
+
+        Label {
+            text: "Выберите размер поля"
+            font.pixelSize: 18
             Layout.alignment: Qt.AlignHCenter
         }
 
@@ -35,7 +75,7 @@ Item {
                 height: 50
                 onClicked: {
                     difficulty--
-                    if (difficulty < 1) difficulty = 3
+                    if (difficulty < 1) difficulty = 6
                 }
 
                 Shape {
@@ -61,7 +101,7 @@ Item {
 
                 Text {
                     anchors.centerIn: parent
-                    text: difficulty === 1 ? "Легкая" : (difficulty === 2 ? "Средняя" : "Сложная")
+                    text: gridColumns + " x " + gridRows
                     font.pixelSize: 32
                     color: "black"
                 }
@@ -74,7 +114,7 @@ Item {
                 height: 50
                 onClicked: {
                     difficulty++
-                    if (difficulty > 3) difficulty = 1
+                    if (difficulty > 6) difficulty = 1
                 }
 
                 Shape {
@@ -104,12 +144,6 @@ Item {
                     console.warn("Ошибка: moduleData или setDifficulty не определены")
                 }
             }
-        }
-
-        Button {
-            text: "← Назад"
-            Layout.alignment: Qt.AlignHCenter
-            onClicked: stackViewRef.pop()
         }
     }
 }

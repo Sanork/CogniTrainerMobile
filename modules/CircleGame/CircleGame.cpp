@@ -18,11 +18,11 @@ QString CircleGameModule::description() const {
 
 // Переопределяем метод для ссылки на QML компонент
 QUrl CircleGameModule::qmlComponentUrl() const {
-    return QUrl("qrc:/modules/CircleGame.qml");
+    return QUrl("qrc:/modules/CircleGame/CircleGame.qml");
 }
 
 QUrl CircleGameModule::qmlSettingsUrl() const {
-    return QUrl("qrc:/modules/CircleGameSettings.qml");
+    return QUrl("qrc:/modules/CircleGame/CircleGameSettings.qml");
 }
 // Переопределяем метод category
 QString CircleGameModule::category() const {
@@ -31,7 +31,7 @@ QString CircleGameModule::category() const {
 
 // Переопределяем метод для иконки
 QUrl CircleGameModule::iconUrl() const {
-    return QUrl("qrc:/icons/circle.png");
+    return QUrl("qrc:/modules/CircleGame/CircleGameIcon.png");
 }
 
 

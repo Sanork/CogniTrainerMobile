@@ -48,10 +48,5 @@ Item {
             }
         }
 
-        Button {
-            text: "← Назад"
-            Layout.alignment: Qt.AlignHCenter
-            onClicked: stackViewRef.pop()
-        }
     }
 }

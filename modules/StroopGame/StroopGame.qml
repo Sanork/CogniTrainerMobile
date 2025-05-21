@@ -19,12 +19,18 @@ Item {
         property string currentColor: ""
         property string correctAnswer: ""
 
+        property string selectedAnswer: ""
+        property bool answerCorrect: false
+
         // === Состояния ===
         property real timeLeft: 3
         property int score: 0
         property int currentRound: 0
         property int maxRounds: 50
         property int roundDuration: 3000
+
+        property bool isCountdownActive: true
+
 
         ToolButton {
             text: "\u2190"
@@ -42,6 +48,54 @@ Item {
             }
         }
 
+        // === Обратный отсчёт перед началом ===
+        Item {
+            id: countdownOverlay
+            anchors.fill: parent
+            visible: true
+            z: 999
+
+            property int countdownValue: 3
+
+            Rectangle {
+                width: 200
+                height: 200
+                radius: 100
+                color: Qt.rgba(0, 0, 0, 0.6)
+                anchors.centerIn: parent
+
+                Text {
+                    id: countdownText
+                    text: countdownOverlay.countdownValue > 0 ? countdownOverlay.countdownValue : "Старт!"
+                    anchors.centerIn: parent
+                    font.pixelSize: 72
+                    color: "white"
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                }
+            }
+
+            Timer {
+                id: countdownStartTimer
+                interval: 1000
+                running: true
+                repeat: true
+                onTriggered: {
+                    countdownOverlay.countdownValue--
+                    if (countdownOverlay.countdownValue < 0) {
+                        countdownStartTimer.stop()
+                        countdownOverlay.visible = false
+                        gameArea.isCountdownActive = false
+                        gameArea.startGame()
+                    }
+                }
+
+            }
+        }
+
+
+
+
         Timer {
             id: countdownTimer
             interval: 100
@@ -53,8 +107,20 @@ Item {
                     countdownTimer.stop()
                     gameArea.nextRound()
                 }
+           }
+        }
+
+        Timer {
+            id: answerFeedbackTimer
+            interval: 300
+            running: false
+            repeat: false
+            onTriggered: {
+                gameArea.selectedAnswer = ""
+                gameArea.nextRound()
             }
         }
+
 
         function startGame() {
             gameArea.score = 0
@@ -89,22 +155,35 @@ Item {
 
         function checkAnswer(answer) {
             countdownTimer.stop()
-            if (answer === gameArea.correctAnswer) {
-                gameArea.score++
+            selectedAnswer = answer
+            answerCorrect = (answer === correctAnswer)
+
+            if (answerCorrect) {
+                score++
             }
-            gameArea.nextRound()
+
+            answerFeedbackTimer.start()
         }
 
-        Column {
-            anchors.centerIn: parent
-            spacing: 20
 
+
+        Item {
+            id: contentArea
+            width: parent.width
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.top: parent.top
+            anchors.topMargin: 80  // чуть ниже, чем было
+
+            // === СЛОВО ===
             Text {
+                id: wordText
                 text: gameArea.currentWord
+                visible: gameArea.currentWord !== "" && !gameArea.isCountdownActive
                 color: gameArea.currentColor
                 font.pixelSize: 48
                 font.bold: true
                 horizontalAlignment: Text.AlignHCenter
+                anchors.top: parent.top
                 anchors.horizontalCenter: parent.horizontalCenter
                 layer.enabled: true
                 layer.effect: DropShadow {
@@ -117,30 +196,50 @@ Item {
                 }
             }
 
+            // === КНОПКИ ===
             GridLayout {
+                id: colorGrid
                 columns: 2
                 rowSpacing: 15
                 columnSpacing: 15
+                anchors.top: wordText.bottom
+                anchors.topMargin: 24
                 anchors.horizontalCenter: parent.horizontalCenter
 
                 Repeater {
                     model: gameArea.colorNames
                     delegate: Button {
                         text: modelData
+                        enabled: !gameArea.isCountdownActive && gameArea.selectedAnswer === ""
                         onClicked: gameArea.checkAnswer(modelData)
                         Layout.fillWidth: true
-                        Layout.preferredHeight: 70    // увеличена высота кнопки
-                        implicitWidth: 160            // увеличена минимальная ширина кнопки
+                        Layout.preferredHeight: 70
+                        implicitWidth: 160
 
                         background: Rectangle {
-                            color: "#3a3a3a"
+                            color: {
+                                if (gameArea.selectedAnswer === modelData) {
+                                    return gameArea.answerCorrect ? "green" : "darkred"
+                                } else {
+                                    return "#3a3a3a"
+                                }
+                            }
                             border.color: "white"
-                            radius: 8                  // чуть больше скругление
+                            radius: 8
+
+                            // Анимация ПРИ смене цвета обратно
+                            Behavior on color {
+                                ColorAnimation {
+                                    duration: 300
+                                    easing.type: Easing.InOutQuad
+                                }
+                            }
                         }
+
                         contentItem: Text {
                             text: modelData
                             color: "white"
-                            font.pixelSize: 24          // увеличен размер шрифта
+                            font.pixelSize: 24
                             horizontalAlignment: Text.AlignHCenter
                             verticalAlignment: Text.AlignVCenter
                             anchors.fill: parent
@@ -150,10 +249,45 @@ Item {
                 }
             }
 
-
-
+            // === СЧЁТЧИК РАУНДОВ ===
+            Text {
+                id: roundsCounter
+                text: "Слово " + gameArea.currentRound + " из " + gameArea.maxRounds
+                color: "white"
+                font.pixelSize: 18
+                horizontalAlignment: Text.AlignHCenter
+                anchors.top: colorGrid.bottom
+                anchors.topMargin: 30
+                anchors.horizontalCenter: parent.horizontalCenter
+                visible: !gameArea.isCountdownActive && !gameOverOverlay.visible
+            }
 
         }
+
+        Rectangle {
+            id: timerBarBackground
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.bottom: parent.bottom
+            height: 10
+            color: "#555"
+
+            Rectangle {
+                id: timerBar
+                height: parent.height
+                width: parent.width * (gameArea.timeLeft * 1000 / gameArea.roundDuration)
+                color: "orange"
+                anchors.left: parent.left
+
+                Behavior on width {
+                    NumberAnimation {
+                        duration: 100
+                        easing.type: Easing.Linear
+                    }
+                }
+            }
+        }
+
 
         // === ОКНО ОКОНЧАНИЯ ИГРЫ ===
         Rectangle {
@@ -198,13 +332,23 @@ Item {
                         text: "Сыграть снова"
                         anchors.horizontalCenter: parent.horizontalCenter
                         onClicked: {
-                            gameArea.startGame()
+                            gameArea.isCountdownActive = true
+                            countdownOverlay.countdownValue = 3
+                            countdownOverlay.visible = true
+                            countdownStartTimer.restart()
+                            gameOverOverlay.visible = false
                         }
+
                     }
                 }
             }
         }
 
-        Component.onCompleted: gameArea.startGame()
+        Component.onCompleted: {
+            gameArea.isCountdownActive = true
+            countdownOverlay.countdownValue = 3
+            countdownOverlay.visible = true
+            countdownStartTimer.start()
+        }
     }
 }

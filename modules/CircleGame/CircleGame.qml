@@ -42,17 +42,72 @@ Item {
                     onClicked: stackView.pop()
                 }
 
-                // Чтобы текст не прижимался к левому краю
                 Item {
                     Layout.fillWidth: true
+                }
+
+                Text {
+                    text: "Круг: " + (roundCount+1 ) + " из " + totalRounds
+                    font.pixelSize: 18
+                    color: "#333333"
+                    verticalAlignment: Text.AlignVCenter
+                    visible: !gameOverOverlay.visible
+                }
+            }
+
+        }
+
+        // === Обратный отсчёт перед началом ===
+        Item {
+            id: countdownOverlay
+            anchors.fill: parent
+            visible: true
+            z: 999
+
+            property int countdownValue: 3
+
+            Rectangle {
+                id: countdownCircle
+                width: 150
+                height: 150
+                radius: width / 2
+                color: Qt.rgba(0, 0, 0, 0.6) // тёмный полупрозрачный
+                anchors.centerIn: parent
+
+                Text {
+                    id: countdownText
+                    text: countdownOverlay.countdownValue > 0 ? countdownOverlay.countdownValue : "Старт!"
+                    anchors.centerIn: parent
+                    font.pixelSize: 50
+                    color: "white"
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                }
+            }
+
+            Timer {
+                id: countdownTimer
+                interval: 1000
+                running: true
+                repeat: true
+                onTriggered: {
+                    countdownOverlay.countdownValue--
+                    if (countdownOverlay.countdownValue < 0) {
+                        countdownTimer.stop()
+                        countdownOverlay.visible = false
+                        autoMoveTimer.start()
+                        circle.visible = true
+                        circle.moveToRandomPosition()
+                    }
                 }
             }
         }
 
 
+
         Rectangle {
             id: circle
-
+            visible: false
             property int maxSize: 80
             property int minSize: 20
 
@@ -71,10 +126,12 @@ Item {
                 circle.y = topBar.height + Math.random() * (availableHeight - circle.height)
             }
 
+
+
             Timer {
                            id: autoMoveTimer
                            interval: 2000 - (root.difficultyValue * 150)
-                           running: true
+                           running: false
                            repeat: true
                            onTriggered: {
                                // Если игра завершена — не продолжаем
@@ -87,9 +144,10 @@ Item {
                                roundCount++
 
                                // Красный след
-                               var missMarker = Qt.createQmlObject(`
+                               var marker = Qt.createQmlObject(`
                                    import QtQuick 2.15
                                    Rectangle {
+                                       id: marker
                                        width: ${circle.width}
                                        height: ${circle.height}
                                        radius: width / 2
@@ -98,15 +156,22 @@ Item {
                                        x: ${circle.x}
                                        y: ${circle.y}
                                        z: -1
-                                       Behavior on opacity {
-                                           NumberAnimation { duration: 800; from: 0.5; to: 0 }
-                                       }
-                                       Timer {
-                                           interval: 800; running: true; repeat: false
-                                           onTriggered: parent.destroy()
+
+                                       SequentialAnimation {
+                                           running: true
+                                           PropertyAnimation {
+                                               target: marker
+                                               property: "opacity"
+                                               to: 0
+                                               duration: 800
+                                           }
+                                           ScriptAction {
+                                               script: marker.destroy()
+                                           }
                                        }
                                    }
                                `, hitMarkerLayer)
+
 
                                circle.moveToRandomPosition()
                            }
@@ -117,9 +182,10 @@ Item {
                            enabled: autoMoveTimer.running
                            onClicked: {
                                // Нажал — попадание
-                               var hitMarker = Qt.createQmlObject(`
+                               var marker = Qt.createQmlObject(`
                                    import QtQuick 2.15
                                    Rectangle {
+                                       id: marker
                                        width: ${circle.width}
                                        height: ${circle.height}
                                        radius: width / 2
@@ -128,15 +194,23 @@ Item {
                                        x: ${circle.x}
                                        y: ${circle.y}
                                        z: -1
-                                       Behavior on opacity {
-                                           NumberAnimation { duration: 800; from: 0.5; to: 0 }
-                                       }
-                                       Timer {
-                                           interval: 800; running: true; repeat: false
-                                           onTriggered: parent.destroy()
+
+                                       SequentialAnimation {
+                                           running: true
+                                           PropertyAnimation {
+                                               target: marker
+                                               property: "opacity"
+                                               to: 0
+                                               duration: 800
+                                           }
+                                           ScriptAction {
+                                               script: marker.destroy()
+                                           }
                                        }
                                    }
                                `, hitMarkerLayer)
+
+
 
                                clickCount++
                                roundCount++
@@ -152,8 +226,7 @@ Item {
                        }
 
                        Component.onCompleted: {
-                           autoMoveTimer.start()
-                           moveToRandomPosition()
+
                        }
                    }
 
@@ -216,10 +289,16 @@ Item {
                         clickCount = 0
                         roundCount = 0
                         gameOverOverlay.visible = false
-                        circle.moveToRandomPosition()
-                        autoMoveTimer.restart()
+
+                        countdownOverlay.countdownValue = 3
+                        countdownOverlay.visible = true
+                        countdownTimer.start()
+
+                        autoMoveTimer.stop()
+                        circle.visible = false
                     }
                 }
+
             }
         }
     }

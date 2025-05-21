@@ -3,6 +3,7 @@
 #include "../modules/CardGame/CardGame.h"
 #include "../modules/SimonGame/SimonGame.h"
 #include "../modules/StroopGame/StroopGame.h"
+#include "../modules/FindGame/FindGame.h"
 
 ModuleRegistry::ModuleRegistry(QObject *parent)
     : QObject(parent)
@@ -36,6 +37,8 @@ void ModuleRegistry::loadModules()
     tryAddModule(new CardGame(this));
     tryAddModule(new SimonGame(this));
     tryAddModule(new StroopGame(this));
+    tryAddModule(new FindGame(this));
+
 
 }
 

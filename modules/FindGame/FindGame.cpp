@@ -48,3 +48,16 @@ void FindGame::setDifficulty(int value)
         emit difficultyChanged();
     }
 }
+
+bool FindGame::endlessMode() const
+{
+    return m_endlessMode;
+}
+
+void FindGame::setEndlessMode(bool value)
+{
+    if (m_endlessMode != value) {
+        m_endlessMode = value;
+        emit endlessModeChanged();
+    }
+}

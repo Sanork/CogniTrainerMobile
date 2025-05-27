@@ -1,6 +1,7 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
+#include <QQuickStyle>
 
 #include "core/ModuleRegistry.h"
 #include "core/CategoryManager.h"
@@ -11,6 +12,8 @@ int main(int argc, char *argv[])
 
     QQmlApplicationEngine engine;
     //QCoreApplication::setAttribute(Qt::AA_UseSoftwareOpenGL);
+
+    QQuickStyle::setStyle("Material");
 
     ModuleRegistry moduleRegistry;
     moduleRegistry.loadModules();

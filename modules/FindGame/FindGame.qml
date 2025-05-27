@@ -24,6 +24,10 @@ Item {
 
     property var moduleData
 
+    property bool isPaused: false
+
+
+
 
 
     Rectangle {
@@ -47,6 +51,91 @@ Item {
         }
     }
 
+    Row {
+        spacing: 12
+        anchors.right: parent.right
+        anchors.top: parent.top
+        anchors.topMargin: 6
+        anchors.rightMargin: 10
+
+        Text {
+            text: root.moduleData && root.moduleData.endlessMode
+                       ? "Раунд: " + currentRound
+                       : "Раунд: " + Math.min(currentRound, maxRounds) + " / " + maxRounds
+
+            font.pixelSize: 20
+            color: "white"
+            verticalAlignment: Text.AlignVCenter
+            Layout.alignment: Qt.AlignVCenter
+        }
+
+        // Кнопка "Пауза"
+        Item {
+            width: 40
+            height: 40
+
+            Rectangle {
+                anchors.fill: parent
+                radius: width / 2
+                color: "#666666"
+            }
+
+            Rectangle {
+                width: 5
+                height: 16
+                radius: 2
+                color: "white"
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.right: parent.horizontalCenter
+                anchors.rightMargin: 2
+            }
+
+            Rectangle {
+                width: 5
+                height: 16
+                radius: 2
+                color: "white"
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.left: parent.horizontalCenter
+                anchors.leftMargin: 2
+            }
+
+            MouseArea {
+                anchors.fill: parent
+                cursorShape: Qt.PointingHandCursor
+                onClicked: root.togglePause()
+            }
+        }
+
+        // Кнопка "Стоп" — только в бесконечном режиме
+        Item {
+            width: 40
+            height: 40
+            visible: moduleData && moduleData.endlessMode
+
+            Rectangle {
+                anchors.fill: parent
+                radius: width / 2
+                color: "#666666"
+            }
+
+            Rectangle {
+                width: 14
+                height: 14
+                color: "white"
+                radius: 3
+                anchors.centerIn: parent
+            }
+
+            MouseArea {
+                anchors.fill: parent
+                onClicked: root.endGame()
+                cursorShape: Qt.PointingHandCursor
+            }
+        }
+    }
+
+
     RowLayout {
         anchors.top: parent.top
         anchors.left: parent.left
@@ -58,13 +147,7 @@ Item {
 
         Item { Layout.fillWidth: true }
 
-        Text {
-            text: "Раунд: " + currentRound + " / " + maxRounds
-            font.pixelSize: 20
-            color: "white"
-            verticalAlignment: Text.AlignVCenter
-            Layout.alignment: Qt.AlignVCenter
-        }
+
 
     }
 
@@ -108,8 +191,9 @@ Item {
                 border.width: 2
 
                 MouseArea {
+
                     anchors.fill: parent
-                    enabled: !root.awaitingNextRound && !root.isCountdownActive
+                    enabled: !root.awaitingNextRound && !root.isCountdownActive && !root.isPaused
                     onClicked: {
                         root.selectedIndex = index
                         root.awaitingNextRound = true
@@ -190,16 +274,49 @@ Item {
         }
     }
 
+    Item {
+        id: pauseOverlay
+        anchors.fill: parent
+        visible: root.isPaused
+        z: 998
+
+        Rectangle {
+            width: 150
+            height: 150
+            radius: width / 2
+            color: Qt.rgba(0, 0, 0, 0.6)
+            anchors.centerIn: parent
+
+            Text {
+                text: "Пауза"
+                anchors.centerIn: parent
+                font.pixelSize: 28
+                color: "white"
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
+            }
+        }
+
+        MouseArea {
+            anchors.fill: parent
+            onClicked: root.togglePause()
+        }
+    }
+
+
+
     Timer {
         id: nextRoundDelay
         interval: 1000
         running: false
         repeat: false
         onTriggered: {
+            if (root.isPaused) return
             awaitingNextRound = false
             selectedIndex = -1
             nextRound()
         }
+
     }
 
     Timer {
@@ -208,11 +325,13 @@ Item {
         running: false
         repeat: false
         onTriggered: {
+            if (root.isPaused) return
             root.awaitingNextRound = true
             root.lastChoiceCorrect = false
             root.selectedIndex = -1
             nextRoundDelay.start()
         }
+
     }
 
     // === ОКОНЧАНИЕ ИГРЫ (для игры "Найди отличающуюся фигуру") ===
@@ -247,7 +366,9 @@ Item {
                 }
 
                 Text {
-                    text: "Результат: " + score + " из " + maxRounds
+                    text: root.moduleData && root.moduleData.endlessMode
+                        ? "Результат: " + score + " из " + currentRound
+                        : "Результат: " + score + " из " + maxRounds
                     font.pixelSize: 20
                     color: "black"
                     horizontalAlignment: Text.AlignHCenter
@@ -267,9 +388,6 @@ Item {
         }
     }
 
-
-
-
     function startCountdown() {
         score = 0
         currentRound = 0
@@ -279,9 +397,23 @@ Item {
         countdownTimer.start()
     }
 
+    function togglePause() {
+        root.isPaused = !root.isPaused
+        if (root.isPaused) {
+            selectionTimer.stop()
+            timerBarAnimation.pause()
+        } else {
+            if (!root.awaitingNextRound && !root.isCountdownActive) {
+                selectionTimer.start()
+                timerBarAnimation.resume()
+            }
+        }
+    }
+
+
     function nextRound() {
         currentRound++
-        if (currentRound > maxRounds) {
+        if (!moduleData.endlessMode && currentRound > maxRounds) {
             figuresData = []
             figureGameOverOverlay.visible = true
             return
@@ -351,6 +483,13 @@ Item {
         timerBarAnimation.start()
     }
 
+    function endGame() {
+        isPaused = false
+        selectionTimer.stop()
+        timerBarAnimation.stop()
+        figuresData = []
+        figureGameOverOverlay.visible = true
+    }
 
 
     Component.onCompleted: startCountdown()

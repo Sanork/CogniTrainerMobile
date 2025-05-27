@@ -3,7 +3,7 @@
 static QList<Category> availableCategories = {
     { "Реакция", "qrc:/images/ReactionIcon.png" },
     { "Память", "qrc:/images/MemoryIcon.png" },
-    { "Внимание", "qrc:/images/AttentionIcon.png" }
+    { "Внимание", "qrc:/images/AttentionIcon.png" },
 };
 
 const QList<Category>& CategoryManager::getAvailableCategories()
@@ -13,8 +13,14 @@ const QList<Category>& CategoryManager::getAvailableCategories()
 
 bool CategoryManager::isValidCategory(const QString& name)
 {
+    QString trimmedName = name.trimmed();
+
+    if (trimmedName.compare("Тест", Qt::CaseInsensitive) == 0) {
+        return true;  // Автоматически пропускаем категорию "Тест"
+    }
+
     return std::any_of(availableCategories.begin(), availableCategories.end(), [&](const Category& c) {
-        return c.name.trimmed().compare(name.trimmed(), Qt::CaseInsensitive) == 0;
+        return c.name.trimmed().compare(trimmedName, Qt::CaseInsensitive) == 0;
     });
 }
 

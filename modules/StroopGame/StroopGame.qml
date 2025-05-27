@@ -11,6 +11,7 @@ Item {
         id: gameArea
         anchors.fill: parent
         color: "#2b2b2b"
+        property bool isPaused: false
 
         // === Данные ===
         property var colorNames: ["Красный", "Синий", "Зелёный", "Жёлтый", "Чёрный", "Белый"]
@@ -19,6 +20,8 @@ Item {
         property string currentColor: ""
         property string correctAnswer: ""
 
+        property int correctCount: 0
+
         property string selectedAnswer: ""
         property bool answerCorrect: false
 
@@ -26,19 +29,16 @@ Item {
         property real timeLeft: 3
         property int score: 0
         property int currentRound: 0
-        property int maxRounds: 50
+        property int maxRounds: 10
         property int roundDuration: 3000
 
         property bool isCountdownActive: true
-
 
         ToolButton {
             text: "\u2190"
             font.pixelSize: 24
             onClicked: stackView.pop()
-            background: Rectangle {
-                color: "transparent"
-            }
+            background: Rectangle { color: "transparent" }
             contentItem: Text {
                 text: "\u2190"
                 color: "white"
@@ -48,13 +48,91 @@ Item {
             }
         }
 
-        // === Обратный отсчёт перед началом ===
+        Row {
+            id: controlButtons
+            spacing: 10
+            anchors.top: parent.top
+            anchors.right: parent.right
+            anchors.topMargin: 10
+            anchors.rightMargin: 10
+            visible: !gameOverOverlay.visible && !countdownOverlay.visible
+
+            // Пауза
+            Item {
+                width: 40
+                height: 40
+
+                Rectangle {
+                    anchors.fill: parent
+                    radius: width / 2
+                    color: "#666666"
+                }
+
+                // Левая палочка
+                Rectangle {
+                    width: 5
+                    height: 16
+                    radius: 2
+                    color: "white"
+                    anchors.verticalCenter: parent.verticalCenter
+                    anchors.right: parent.horizontalCenter
+                    anchors.rightMargin: 2
+                }
+
+                // Правая палочка
+                Rectangle {
+                    width: 5
+                    height: 16
+                    radius: 2
+                    color: "white"
+                    anchors.verticalCenter: parent.verticalCenter
+                    anchors.left: parent.horizontalCenter
+                    anchors.leftMargin: 2
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: gameArea.togglePause()
+                }
+            }
+
+            // Стоп (только для бесконечного режима)
+            Item {
+                width: 40
+                height: 40
+                visible: moduleData.endlessMode
+
+                Rectangle {
+                    anchors.fill: parent
+                    radius: width / 2
+                    color: "#666666"
+                }
+
+                Rectangle {
+                    width: 14
+                    height: 14
+                    color: "white"
+                    radius: 3
+                    anchors.centerIn: parent
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+                    onClicked: gameArea.endGame()
+                    cursorShape: Qt.PointingHandCursor
+                }
+            }
+        }
+
+
+
+        // === Обратный отсчёт ===
         Item {
             id: countdownOverlay
             anchors.fill: parent
             visible: true
             z: 999
-
             property int countdownValue: 3
 
             Rectangle {
@@ -89,12 +167,8 @@ Item {
                         gameArea.startGame()
                     }
                 }
-
             }
         }
-
-
-
 
         Timer {
             id: countdownTimer
@@ -102,12 +176,14 @@ Item {
             repeat: true
             running: false
             onTriggered: {
-                gameArea.timeLeft -= 0.1
-                if (gameArea.timeLeft <= 0) {
-                    countdownTimer.stop()
-                    gameArea.nextRound()
+                if (!gameArea.isPaused) {
+                    gameArea.timeLeft -= 0.1
+                    if (gameArea.timeLeft <= 0) {
+                        countdownTimer.stop()
+                        gameArea.nextRound()
+                    }
                 }
-           }
+            }
         }
 
         Timer {
@@ -121,11 +197,12 @@ Item {
             }
         }
 
-
         function startGame() {
             gameArea.score = 0
+            gameArea.correctCount = 0  // <- сброс
             gameArea.currentRound = 0
             gameOverOverlay.visible = false
+            gameArea.isPaused = false
 
             let difficulty = moduleData.difficulty
             let maxTime = 5000
@@ -135,31 +212,40 @@ Item {
             gameArea.nextRound()
         }
 
+
         function nextRound() {
-            gameArea.currentRound++
-            if (gameArea.currentRound > gameArea.maxRounds) {
+            if (!moduleData.endlessMode && gameArea.currentRound >= gameArea.maxRounds) {
                 gameOverOverlay.visible = true
+                countdownTimer.stop()
                 return
             }
 
-            let wordIndex = Math.floor(Math.random() * gameArea.colorNames.length)
-            let colorIndex = Math.floor(Math.random() * gameArea.colorValues.length)
+            if (!gameArea.isPaused) {
+                // ⚠️ Никаких увеличений здесь
+                let wordIndex = Math.floor(Math.random() * gameArea.colorNames.length)
+                let colorIndex = Math.floor(Math.random() * gameArea.colorValues.length)
 
-            gameArea.currentWord = gameArea.colorNames[wordIndex]
-            gameArea.currentColor = gameArea.colorValues[colorIndex]
-            gameArea.correctAnswer = gameArea.colorNames[colorIndex]
+                gameArea.currentWord = gameArea.colorNames[wordIndex]
+                gameArea.currentColor = gameArea.colorValues[colorIndex]
+                gameArea.correctAnswer = gameArea.colorNames[colorIndex]
 
-            gameArea.timeLeft = gameArea.roundDuration / 1000.0
-            countdownTimer.restart()
+                gameArea.timeLeft = gameArea.roundDuration / 1000.0
+                countdownTimer.restart()
+            }
         }
 
+
         function checkAnswer(answer) {
+            if (gameArea.isPaused) return
             countdownTimer.stop()
             selectedAnswer = answer
             answerCorrect = (answer === correctAnswer)
 
+            gameArea.currentRound++  // ✅ теперь только здесь, после ответа
+
             if (answerCorrect) {
-                score++
+                gameArea.score++
+                gameArea.correctCount++
             }
 
             answerFeedbackTimer.start()
@@ -172,9 +258,8 @@ Item {
             width: parent.width
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.top: parent.top
-            anchors.topMargin: 80  // чуть ниже, чем было
+            anchors.topMargin: 80
 
-            // === СЛОВО ===
             Text {
                 id: wordText
                 text: gameArea.currentWord
@@ -196,7 +281,6 @@ Item {
                 }
             }
 
-            // === КНОПКИ ===
             GridLayout {
                 id: colorGrid
                 columns: 2
@@ -227,7 +311,6 @@ Item {
                             border.color: "white"
                             radius: 8
 
-                            // Анимация ПРИ смене цвета обратно
                             Behavior on color {
                                 ColorAnimation {
                                     duration: 300
@@ -252,7 +335,9 @@ Item {
             // === СЧЁТЧИК РАУНДОВ ===
             Text {
                 id: roundsCounter
-                text: "Слово " + gameArea.currentRound + " из " + gameArea.maxRounds
+                text: moduleData.endlessMode
+                    ? (gameArea.currentRound === 0 ? "" : "Правильно: " + gameArea.correctCount + " из " + gameArea.currentRound)
+                    : "Слово " + gameArea.currentRound + " из " + gameArea.maxRounds
                 color: "white"
                 font.pixelSize: 18
                 horizontalAlignment: Text.AlignHCenter
@@ -261,6 +346,8 @@ Item {
                 anchors.horizontalCenter: parent.horizontalCenter
                 visible: !gameArea.isCountdownActive && !gameOverOverlay.visible
             }
+
+
 
         }
 
@@ -288,8 +375,6 @@ Item {
             }
         }
 
-
-        // === ОКНО ОКОНЧАНИЯ ИГРЫ ===
         Rectangle {
             id: gameOverOverlay
             visible: false
@@ -321,7 +406,9 @@ Item {
                     }
 
                     Text {
-                        text: "Точность: " + Math.round((gameArea.score / gameArea.maxRounds) * 100) + " %"
+                        text: moduleData.endlessMode
+                            ? "Точность: " + (gameArea.currentRound > 0 ? Math.round((gameArea.correctCount / gameArea.currentRound) * 100) : 0) + " %"
+                            : "Точность: " + Math.round((gameArea.score / gameArea.maxRounds) * 100) + " %"
                         font.pixelSize: 20
                         color: "black"
                         horizontalAlignment: Text.AlignHCenter
@@ -338,11 +425,54 @@ Item {
                             countdownStartTimer.restart()
                             gameOverOverlay.visible = false
                         }
-
                     }
                 }
             }
         }
+
+        Item {
+            id: pauseOverlay
+            anchors.fill: parent
+            visible: gameArea.isPaused
+            z: 998
+
+            Rectangle {
+                width: 150
+                height: 150
+                radius: width / 2
+                color: Qt.rgba(0, 0, 0, 0.6)
+                anchors.centerIn: parent
+
+                Text {
+                    text: "Пауза"
+                    anchors.centerIn: parent
+                    font.pixelSize: 28
+                    color: "white"
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                }
+            }
+
+            MouseArea {
+                anchors.fill: parent
+                onClicked: gameArea.togglePause()
+            }
+        }
+
+        function togglePause() {
+            gameArea.isPaused = !gameArea.isPaused
+            if (gameArea.isPaused) {
+                countdownTimer.stop()
+            } else if (!gameArea.isCountdownActive && gameArea.timeLeft > 0) {
+                countdownTimer.start()
+            }
+        }
+
+        function endGame() {
+            countdownTimer.stop()
+            gameOverOverlay.visible = true
+        }
+
 
         Component.onCompleted: {
             gameArea.isCountdownActive = true

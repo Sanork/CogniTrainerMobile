@@ -48,3 +48,16 @@ void CircleGameModule::setDifficulty(int value)
         emit difficultyChanged();
     }
 }
+
+bool CircleGameModule::endlessMode() const
+{
+    return m_endlessMode;
+}
+
+void CircleGameModule::setEndlessMode(bool value)
+{
+    if (m_endlessMode != value) {
+        m_endlessMode = value;
+        emit endlessModeChanged();
+    }
+}

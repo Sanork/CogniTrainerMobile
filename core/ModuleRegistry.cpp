@@ -4,6 +4,8 @@
 #include "../modules/SimonGame/SimonGame.h"
 #include "../modules/StroopGame/StroopGame.h"
 #include "../modules/FindGame/FindGame.h"
+#include "../modules/ReactGame/ReactGame.h"
+#include "../modules/DigitSpanTest/DigitSpanTest.h"
 
 ModuleRegistry::ModuleRegistry(QObject *parent)
     : QObject(parent)
@@ -38,7 +40,7 @@ void ModuleRegistry::loadModules()
     tryAddModule(new SimonGame(this));
     tryAddModule(new StroopGame(this));
     tryAddModule(new FindGame(this));
-
-
+    tryAddModule(new ReactGame(this));
+    tryAddModule(new DigitSpanTest(this));
 }
 

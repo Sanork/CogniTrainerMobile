@@ -4,7 +4,7 @@ project(CogniTrainerMobile VERSION 0.1 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Quick)
+find_package(Qt6 REQUIRED COMPONENTS Quick QuickControls2)
 
 qt_standard_project_setup(REQUIRES 6.8)
 
@@ -24,6 +24,9 @@ qt_add_resources(appCogniTrainerMobile "app_qml"
     FILES
         Main.qml
         CategoryModulesView.qml
+        SettingsPage.qml
+        TestsPage.qml
+        TrainingsPage.qml
 
 )
 
@@ -34,6 +37,10 @@ qt_add_resources(appCogniTrainerMobile "app_modules"
         modules/CardGame/
         modules/SimonGame/
         modules/StroopGame/
+        modules/FindGame/
+        modules/ReactGame/
+        modules/DigitSpanTest/
+
 )
 
 
@@ -62,6 +69,18 @@ qt_add_qml_module(appCogniTrainerMobile
         SOURCES modules/StroopGame/StroopGame.h modules/StroopGame/StroopGame.cpp
         QML_FILES modules/StroopGame/StroopGameSettings.qml
         QML_FILES modules/StroopGame/StroopGame.qml
+        SOURCES modules/FindGame/FindGame.h modules/FindGame/FindGame.cpp
+        QML_FILES modules/FindGame/FindGameSettings.qml
+        QML_FILES modules/FindGame/FindGame.qml
+        SOURCES modules/ReactGame/ReactGame.h modules/ReactGame/ReactGame.cpp
+        QML_FILES modules/ReactGame/ReactGameSettings.qml
+        QML_FILES modules/ReactGame/ReactGame.qml
+        QML_FILES TrainingsPage.qml
+        QML_FILES TestsPage.qml
+        QML_FILES SettingsPage.qml
+        SOURCES modules/DigitSpanTest/DigitSpanTest.h modules/DigitSpanTest/DigitSpanTest.cpp
+        QML_FILES modules/DigitSpanTest/DigitSpanTestSettings.qml
+        QML_FILES modules/DigitSpanTest/DigitSpanTest.qml
         #QML_FILES CategoryModulesView.qml
         #QML_FILES modules/CircleGame/CircleGameSettings.qml
         #RESOURCES resources.qrc
@@ -79,6 +98,8 @@ set_target_properties(appCogniTrainerMobile PROPERTIES
 # Линкуем с Qt6
 target_link_libraries(appCogniTrainerMobile
     PRIVATE Qt6::Quick
+    Qt6::QuickControls2
+
 )
 
 # Устанавливаем пути для установки

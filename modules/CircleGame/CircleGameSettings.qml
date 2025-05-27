@@ -13,6 +13,7 @@ Item {
 
     // Выбранная сложность
     property int difficulty: (moduleData && typeof moduleData.difficulty === "number") ? moduleData.difficulty : 5
+    property bool endlessMode: (moduleData && typeof moduleData.endlessMode === "boolean") ? moduleData.endlessMode : false
 
     ToolButton {
         text: "\u2190"
@@ -31,7 +32,7 @@ Item {
             wrapMode: Text.WordWrap
             horizontalAlignment: Text.AlignHCenter
             Layout.alignment: Qt.AlignHCenter
-            Layout.preferredWidth: root.width * 0.8  // или колонка.width * 0.8, если доступно
+            Layout.preferredWidth: root.width * 0.8
             width: root.width * 0.8
         }
 
@@ -45,7 +46,6 @@ Item {
             Layout.alignment: Qt.AlignHCenter
             spacing: 30
 
-            // Левая кнопка
             MouseArea {
                 width: 50
                 height: 50
@@ -63,7 +63,6 @@ Item {
                         PathLine { x: 15; y: 25 }
                         PathLine { x: 35; y: 40 }
                         PathLine { x: 35; y: 10 }
-                        //PathClose {}
                     }
                 }
             }
@@ -83,8 +82,6 @@ Item {
                 }
             }
 
-            // Правая кнопка
-            // Правая кнопка (исправленная, треугольник вправо)
             MouseArea {
                 width: 50
                 height: 50
@@ -106,12 +103,25 @@ Item {
             }
         }
 
+        CheckBox {
+            id: endlessCheckBox
+            text: "Бесконечный режим"
+            checked: endlessMode
+
+            Layout.alignment: Qt.AlignHCenter
+            onCheckedChanged: {
+                endlessMode = checked
+            }
+        }
+
         Button {
             text: "Продолжить"
             Layout.alignment: Qt.AlignHCenter
             onClicked: {
                 if (moduleData && typeof moduleData.setDifficulty === "function") {
                     moduleData.setDifficulty(difficulty)
+                    moduleData.endlessMode = endlessMode  // Установка бесконечного режима
+
                     stackViewRef.push(moduleData.qmlComponentUrl, {
                         moduleData: moduleData,
                         stackViewRef: stackViewRef
@@ -121,6 +131,5 @@ Item {
                 }
             }
         }
-
     }
 }

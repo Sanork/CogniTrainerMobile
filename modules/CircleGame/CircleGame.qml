@@ -7,13 +7,18 @@ Item {
     visible: true
     anchors.fill: parent
 
+    property StackView stackViewRef
+    property var moduleData
+    property int difficultyValue: moduleData ? moduleData.difficulty : 5
+    property bool endlessMode: moduleData && moduleData.endlessMode === true
+
     property int clickCount: 0
     property int roundCount: 0
     property int totalRounds: 50
     property bool answeredThisRound: false
     property bool processingRound: false
-    property var moduleData
-    property int difficultyValue: moduleData ? moduleData.difficulty : 5
+
+    property bool paused: false
 
     function createMarker(color) {
         var marker = Qt.createQmlObject(`
@@ -60,22 +65,106 @@ Item {
             RowLayout {
                 anchors.fill: parent
                 anchors.margins: 8
-                spacing: 12
+                spacing: 4
 
                 ToolButton {
                     text: "\u2190"
-                    font.pixelSize: 30
-                    onClicked: stackView.pop()
+                    font.pixelSize: 24
+                    onClicked: root.stackViewRef.pop()
+                    Layout.alignment: Qt.AlignVCenter
                 }
 
-                Item { Layout.fillWidth: true }
+                Item {
+                    Layout.fillWidth: true
+                }
 
                 Text {
-                    text: "Круг: " + (root.roundCount + 1) + " из " + root.totalRounds
-                    font.pixelSize: 18
+                    text: endlessMode
+                          ? "Попаданий: " + root.clickCount + " из " + root.roundCount + " (" +
+                            (root.roundCount > 0
+                                ? Math.round(root.clickCount / root.roundCount * 100) + " %"
+                                : "0%") + ")"
+                          : "Круг: " + (root.roundCount + 1) + " из " + root.totalRounds
+                    font.pixelSize: 16
                     color: "#333"
                     visible: !gameOverOverlay.visible
+                    Layout.alignment: Qt.AlignVCenter
                 }
+
+
+                Item {
+                    width: 40
+                    height: 40
+                    visible: !gameOverOverlay.visible && !countdownOverlay.visible
+
+                    Rectangle {
+                        anchors.fill: parent
+                        radius: width / 2
+                        color: "#666666"
+                    }
+
+                    // Левая палочка
+                    Rectangle {
+                        width: 5
+                        height: 16
+                        radius: 2
+                        color: "white"
+                        anchors.verticalCenter: parent.verticalCenter
+                        anchors.right: parent.horizontalCenter
+                        anchors.rightMargin: 2
+                    }
+
+                    // Правая палочка
+                    Rectangle {
+                        width: 5
+                        height: 16
+                        radius: 2
+                        color: "white"
+                        anchors.verticalCenter: parent.verticalCenter
+                        anchors.left: parent.horizontalCenter
+                        anchors.leftMargin: 2
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked: root.togglePause()
+                        cursorShape: Qt.PointingHandCursor
+                    }
+
+                    Layout.alignment: Qt.AlignVCenter
+                }
+
+
+                Item {
+                    width: 40
+                    height: 40
+                    visible: endlessMode && !gameOverOverlay.visible && !countdownOverlay.visible
+
+                    Rectangle {
+                        anchors.fill: parent
+                        radius: width / 2
+                        color: "#666666"
+                    }
+
+                    Rectangle {
+                        width: 14
+                        height: 14
+                        color: "white"
+                        radius: 3
+                        anchors.centerIn: parent
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked: root.endGame()
+                        cursorShape: Qt.PointingHandCursor
+                    }
+
+                    Layout.alignment: Qt.AlignVCenter
+                }
+
+
+
             }
         }
 
@@ -117,26 +206,20 @@ Item {
                     root.roundCount++;
                     root.createMarker("#00ff00");
 
-                    if (root.roundCount >= root.totalRounds) {
+                    if (!endlessMode && root.roundCount >= root.totalRounds) {
                         root.endGame();
                     } else {
                         circle.visible = false;
-
                         Qt.callLater(() => {
-                            root.answeredThisRound = false;  // ← сбрасываем для нового раунда
+                            root.answeredThisRound = false;
                             circle.moveToRandomPosition();
                             circle.visible = true;
                             circleMouseArea.enabled = true;
-                            autoMoveTimer.stop();
-                            autoMoveTimer.start();
+                            autoMoveTimer.restart();
                         });
                     }
                 }
-
-
-
             }
-
         }
 
         Timer {
@@ -153,25 +236,19 @@ Item {
                 root.roundCount++;
                 root.createMarker("#ff0000");
 
-                if (root.roundCount >= root.totalRounds) {
+                if (!endlessMode && root.roundCount >= root.totalRounds) {
                     root.endGame();
                 } else {
                     circle.visible = false;
-
                     Qt.callLater(() => {
-                        root.answeredThisRound = false;  // ← сбрасываем для нового раунда
+                        root.answeredThisRound = false;
                         circle.moveToRandomPosition();
                         circle.visible = true;
                         circleMouseArea.enabled = true;
-                        autoMoveTimer.stop();
-                        autoMoveTimer.start();
+                        autoMoveTimer.restart();
                     });
-
                 }
             }
-
-
-
         }
 
         Rectangle {
@@ -205,12 +282,16 @@ Item {
                     }
 
                     Text {
-                        text: "Точность: " + Math.round(root.clickCount / root.roundCount * 100) + " %"
+                        text: "Точность: " +
+                              (root.roundCount > 0
+                                ? Math.round(root.clickCount / root.roundCount * 100) + " %"
+                                : "0 %")
                         font.pixelSize: 20
                         color: "black"
                         horizontalAlignment: Text.AlignHCenter
                         anchors.horizontalCenter: parent.horizontalCenter
                     }
+
 
                     Button {
                         text: "Сыграть снова"
@@ -271,14 +352,43 @@ Item {
                         circle.visible = true;
                         circleMouseArea.enabled = true;
                     }
-
                 }
             }
         }
 
+        Item {
+            id: pauseOverlay
+            anchors.fill: parent
+            visible: false
+            z: 998
 
+            Rectangle {
+                width: 150
+                height: 150
+                radius: width / 2
+                color: Qt.rgba(0, 0, 0, 0.6)
+                anchors.centerIn: parent
 
+                Text {
+                    text: "Пауза"
+                    anchors.centerIn: parent
+                    font.pixelSize: 28
+                    color: "white"
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                }
+            }
 
+            MouseArea {
+                anchors.fill: parent
+                onClicked: {
+                    // Синхронизируем состояние паузы при клике на оверлей
+                    if (root.paused) {
+                        root.togglePause();
+                    }
+                }
+            }
+        }
 
     }
 
@@ -292,5 +402,19 @@ Item {
         root.processingRound = false;
     }
 
-
+    function togglePause() {
+        paused = !paused;
+        if (paused) {
+            autoMoveTimer.stop();
+            circle.visible = false;
+            circleMouseArea.enabled = false;
+            pauseOverlay.visible = true;
+        } else {
+            pauseOverlay.visible = false;
+            circle.moveToRandomPosition();
+            circle.visible = true;
+            circleMouseArea.enabled = true;
+            autoMoveTimer.start();
+        }
+    }
 }

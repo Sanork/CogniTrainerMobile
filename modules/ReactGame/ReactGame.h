@@ -1,17 +1,17 @@
-#ifndef FINDGAME_H
-#define FINDGAME_H
+#ifndef REACTGAME_H
+#define REACTGAME_H
 
 #include "core/BaseModule.h"
 
-class FindGame : public BaseModule
+
+class ReactGame : public BaseModule
 {
     Q_OBJECT
-    Q_PROPERTY(int difficulty READ difficulty WRITE setDifficulty NOTIFY difficultyChanged)
     Q_PROPERTY(bool endlessMode READ endlessMode WRITE setEndlessMode NOTIFY endlessModeChanged)
 
 public:
     using BaseModule::BaseModule;
-    explicit FindGame(QObject *parent = nullptr);
+    explicit ReactGame(QObject *parent = nullptr);
 
     QString name() const override;
     QString description() const override;
@@ -20,20 +20,17 @@ public:
     QString category() const override;
     QUrl iconUrl() const override;
 
-    Q_INVOKABLE int difficulty() const;
+
     Q_INVOKABLE bool endlessMode() const;
 
 public slots:
-    void setDifficulty(int value);
     void setEndlessMode(bool value);
 
 signals:
-    void difficultyChanged();
     void endlessModeChanged();
 
 private:
-    int m_difficulty;
-    bool m_endlessMode;;
+    bool m_endlessMode;
 };
 
-#endif // FINDGAME_H
+#endif

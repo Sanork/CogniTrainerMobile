@@ -26,7 +26,7 @@ QUrl StroopGame::qmlSettingsUrl() const {
 }
 // Переопределяем метод category
 QString StroopGame::category() const {
-    return "Внимание";
+    return "Тест";
 }
 
 // Переопределяем метод для иконки
@@ -48,3 +48,18 @@ void StroopGame::setDifficulty(int value)
         emit difficultyChanged();
     }
 }
+
+
+bool StroopGame::endlessMode() const
+{
+    return m_endlessMode;
+}
+
+void StroopGame::setEndlessMode(bool value)
+{
+    if (m_endlessMode != value) {
+        m_endlessMode = value;
+        emit endlessModeChanged();
+    }
+}
+

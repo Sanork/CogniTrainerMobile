@@ -1,14 +1,13 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
+import "."  // Чтобы находить локальные компоненты
 
 Item {
     id: root
     anchors.fill: parent
 
-    property string categoryName
-    property var modulesModel
-    property var stackViewRef: null
+    property var stackViewRef
 
     ColumnLayout {
         anchors.fill: parent
@@ -20,45 +19,17 @@ Item {
             color: "#f0f0f0"
             border.color: "#cccccc"
 
-            RowLayout {
-                anchors.fill: parent
-                anchors.margins: 8
-                spacing: 0
-
-                ToolButton {
-                    id: backButton
-                    text: "\u2190"
-                    font.pixelSize: 30
-                    width: 50
-                    anchors.verticalCenter: parent.verticalCenter
-                    y: parent.verticalCenter - height / 2 - 4
-                    onClicked: {
-                        if (stackViewRef) {
-                            stackViewRef.pop()
-                        }
-                    }
-                }
-
-                Label {
-                    text: categoryName
-                    font.pixelSize: 20
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
-                    Layout.fillWidth: true
-                    anchors.verticalCenter: parent.verticalCenter
-                }
-
-                Item {
-                    width: backButton.width
-                    Layout.preferredHeight: 0
-                }
+            Label {
+                anchors.centerIn: parent
+                text: "Выберите категорию:"
+                font.pixelSize: 20
             }
         }
 
         ListView {
             Layout.fillWidth: true
             Layout.fillHeight: true
-            model: modulesModel
+            model: categoryManager.categories()
             spacing: 12
             clip: true
 
@@ -78,7 +49,7 @@ Item {
                         spacing: 12
 
                         Image {
-                            source: modelData.iconUrl
+                            source: modelData.icon
                             sourceSize.width: 32
                             sourceSize.height: 32
                             fillMode: Image.PreserveAspectFit
@@ -96,9 +67,11 @@ Item {
                     MouseArea {
                         anchors.fill: parent
                         onClicked: {
+                            const modulesForCategory = moduleRegistry.modules.filter(m => m.category === modelData.name)
                             if (stackViewRef) {
-                                stackViewRef.push(modelData.qmlSettingsUrl, {
-                                    moduleData: modelData,
+                                stackViewRef.push("qrc:/qml/CategoryModulesView.qml", {
+                                    categoryName: modelData.name,
+                                    modulesModel: modulesForCategory,
                                     stackViewRef: stackViewRef
                                 })
                             } else {

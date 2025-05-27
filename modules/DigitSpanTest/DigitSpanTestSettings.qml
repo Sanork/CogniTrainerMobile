@@ -12,8 +12,31 @@ Item {
     property var stackViewRef
 
     // Выбранная сложность
-    property int difficulty: (moduleData && typeof moduleData.difficulty === "number") ? moduleData.difficulty : 5
-    property bool endlessMode: (moduleData && typeof moduleData.endlessMode === "boolean") ? moduleData.endlessMode : false
+    property int age: (moduleData && typeof moduleData.age === "number") ? moduleData.age : 1
+
+
+    property int gridColumns: {
+        switch (age) {
+            case 1: return 2;
+            case 2: return 4;
+            case 3: return 4;
+            case 4: return 4;
+            case 5: return 5;
+            case 6: return 5;
+            default: return 4;
+        }
+    }
+    property int gridRows: {
+        switch (age) {
+            case 1: return 3;
+            case 2: return 3;
+            case 3: return 4;
+            case 4: return 6;
+            case 5: return 6;
+            case 6: return 8;
+            default: return 4;
+        }
+    }
 
     ToolButton {
         text: "\u2190"
@@ -32,12 +55,12 @@ Item {
             wrapMode: Text.WordWrap
             horizontalAlignment: Text.AlignHCenter
             Layout.alignment: Qt.AlignHCenter
-            Layout.preferredWidth: root.width * 0.8
+            Layout.preferredWidth: root.width * 0.8  // или колонка.width * 0.8, если доступно
             width: root.width * 0.8
         }
 
         Label {
-            text: "Выберите уровень сложности"
+            text: "Выберите ваш возраст"
             font.pixelSize: 18
             Layout.alignment: Qt.AlignHCenter
         }
@@ -46,12 +69,13 @@ Item {
             Layout.alignment: Qt.AlignHCenter
             spacing: 30
 
+            // Левая кнопка
             MouseArea {
                 width: 50
                 height: 50
                 onClicked: {
-                    difficulty--
-                    if (difficulty < 1) difficulty = 6
+                    age--
+                    if (age < 6) age = 90
                 }
 
                 Shape {
@@ -63,12 +87,13 @@ Item {
                         PathLine { x: 15; y: 25 }
                         PathLine { x: 35; y: 40 }
                         PathLine { x: 35; y: 10 }
+                        //PathClose {}
                     }
                 }
             }
 
             Rectangle {
-                width: 100
+                width: 140
                 height: 60
                 color: "#eeeeee"
                 radius: 10
@@ -76,18 +101,20 @@ Item {
 
                 Text {
                     anchors.centerIn: parent
-                    text: difficulty
+                    text: age
                     font.pixelSize: 32
                     color: "black"
                 }
             }
 
+            // Правая кнопка
+            // Правая кнопка (исправленная, треугольник вправо)
             MouseArea {
                 width: 50
                 height: 50
                 onClicked: {
-                    difficulty++
-                    if (difficulty > 6) difficulty = 1
+                    age++
+                    if (age > 90) age = 6
                 }
 
                 Shape {
@@ -103,31 +130,18 @@ Item {
             }
         }
 
-        CheckBox {
-            id: endlessCheckBox
-            text: "Бесконечный режим"
-            checked: endlessMode
-
-            Layout.alignment: Qt.AlignHCenter
-            onCheckedChanged: {
-                endlessMode = checked
-            }
-        }
-
         Button {
             text: "Продолжить"
             Layout.alignment: Qt.AlignHCenter
             onClicked: {
-                if (moduleData && typeof moduleData.setDifficulty === "function") {
-                    moduleData.setDifficulty(difficulty)
-                    moduleData.endlessMode = endlessMode  // Установка бесконечного режима
-
+                if (moduleData && typeof moduleData.setAge === "function") {
+                    moduleData.setAge(age)
                     stackViewRef.push(moduleData.qmlComponentUrl, {
                         moduleData: moduleData,
                         stackViewRef: stackViewRef
                     })
                 } else {
-                    console.warn("Ошибка: moduleData или setDifficulty не определены")
+                    console.warn("Ошибка: moduleData или setAge не определены")
                 }
             }
         }

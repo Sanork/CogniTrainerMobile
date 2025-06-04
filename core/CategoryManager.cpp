@@ -4,6 +4,7 @@ static QList<Category> availableCategories = {
     { "Реакция", "qrc:/images/ReactionIcon.png" },
     { "Память", "qrc:/images/MemoryIcon.png" },
     { "Внимание", "qrc:/images/AttentionIcon.png" },
+    { "Письмо и ввод", "qrc:/images/KeyboardIcon.png" },
 };
 
 const QList<Category>& CategoryManager::getAvailableCategories()

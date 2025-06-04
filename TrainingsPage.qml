@@ -1,6 +1,6 @@
-import QtQuick 2.15
-import QtQuick.Controls 2.15
-import QtQuick.Layouts 1.15
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Layouts
 import "."  // Чтобы находить локальные компоненты
 
 Item {
@@ -14,50 +14,80 @@ Item {
         spacing: 0
 
         Rectangle {
-            height: 56
+            height: 72
             Layout.fillWidth: true
-            color: "#f0f0f0"
-            border.color: "#cccccc"
+
+            anchors.margins: 8
+            anchors.bottomMargin: 6
+            color: Material.theme === Material.Dark ? "#2c3e50" : "#C9E9FF"
+
 
             Label {
                 anchors.centerIn: parent
                 text: "Выберите категорию:"
-                font.pixelSize: 20
+                font.pixelSize: 22
+                color: Material.theme === Material.Dark ? "white" : "black"
             }
+
+        }
+        /*Rectangle {
+            width: root.width
+            color: Material.theme === Material.Dark ? "white" : "black"
+            height: 2
+        }*/
+
+        Item {
+            width: root.width
+            height: 8
         }
 
         ListView {
             Layout.fillWidth: true
             Layout.fillHeight: true
             model: categoryManager.categories()
-            spacing: 12
             clip: true
 
             delegate: Item {
                 width: ListView.view.width
-                height: 72
+                height: 88
+                anchors.topMargin: 4
 
                 Rectangle {
+                    id: backgroundRect
                     anchors.fill: parent
                     anchors.margins: 8
-                    color: "#dcdcdc"
-                    radius: 10
+                    radius: 15
+                    //border.color: Material.theme === Material.Dark ? "white" : "black"
+                    //border.width: 2
+
+                    // Конкретные цвета для тем и высокая контрастность
+                    color: Material.theme === Material.Dark ? "#2c3e50" : "#C9E9FF"  // Тёмно-синий и светло-синий
+
+                    Image {
+                        id: iconImage
+                        source: modelData.icon
+                        anchors.top: parent.top
+                        anchors.bottom: parent.bottom
+                        anchors.left: parent.left
+                        anchors.leftMargin: 2
+                        width: height - 4
+                        fillMode: Image.PreserveAspectFit
+                        mipmap: true
+
+                    }
 
                     RowLayout {
                         anchors.fill: parent
-                        anchors.margins: 12
+                        anchors.leftMargin: iconImage.width + 24
+                        anchors.rightMargin: 12
+                        anchors.topMargin: 12
+                        anchors.bottomMargin: 12
                         spacing: 12
-
-                        Image {
-                            source: modelData.icon
-                            sourceSize.width: 32
-                            sourceSize.height: 32
-                            fillMode: Image.PreserveAspectFit
-                        }
 
                         Text {
                             text: modelData.name
-                            font.pixelSize: 16
+                            font.pixelSize: 22
+                            color: Material.theme === Material.Dark ? "#ffffff" : "#000000"
                             Layout.alignment: Qt.AlignVCenter
                         }
 

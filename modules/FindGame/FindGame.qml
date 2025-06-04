@@ -30,110 +30,117 @@ Item {
 
 
 
-    Rectangle {
+    Frame {
         anchors.fill: parent
-        color: "#2b2b2b"
+        //color: "#2b2b2b"
     }
 
-    ToolButton {
-        text: "\u2190"
-        font.pixelSize: 24
-        onClicked: stackView.pop()
-        background: Rectangle {
-            color: "transparent"
-        }
-        contentItem: Text {
-            text: "\u2190"
-            color: "white"
-            font.pixelSize: 24
-            horizontalAlignment: Text.AlignHCenter
-            verticalAlignment: Text.AlignVCenter
-        }
-    }
-
-    Row {
-        spacing: 12
-        anchors.right: parent.right
+    Rectangle {
+        id: topBar
+        height: 56
+        width: parent.width
         anchors.top: parent.top
-        anchors.topMargin: 6
-        anchors.rightMargin: 10
+        color: Material.theme === Material.Dark ? "#303030" : "#f0f0f0"
+        border.color: Material.theme === Material.Dark ? "#555555" : "#cccccc"
 
-        Text {
-            text: root.moduleData && root.moduleData.endlessMode
-                       ? "Раунд: " + currentRound
-                       : "Раунд: " + Math.min(currentRound, maxRounds) + " / " + maxRounds
+        RowLayout {
+            anchors.fill: parent
+            anchors.rightMargin: 8
+            anchors.leftMargin: 4
+            spacing: 4
 
-            font.pixelSize: 20
-            color: "white"
-            verticalAlignment: Text.AlignVCenter
-            Layout.alignment: Qt.AlignVCenter
-        }
-
-        // Кнопка "Пауза"
-        Item {
-            width: 40
-            height: 40
-
-            Rectangle {
-                anchors.fill: parent
-                radius: width / 2
-                color: "#666666"
+            ToolButton {
+                text: "\u2190"
+                font.pixelSize: 28
+                onClicked: stackView.pop()
+                Material.foreground: Material.theme === Material.Dark ? "white" : "black"
+                Layout.alignment: Qt.AlignVCenter
             }
 
-            Rectangle {
-                width: 5
-                height: 16
-                radius: 2
-                color: "white"
-                anchors.verticalCenter: parent.verticalCenter
-                anchors.right: parent.horizontalCenter
-                anchors.rightMargin: 2
+            Item { Layout.fillWidth: true }
+
+            Text {
+                text: root.moduleData && root.moduleData.endlessMode
+                    ? "Раунд: " + currentRound
+                    : "Раунд: " + Math.min(currentRound, maxRounds) + " / " + maxRounds
+                font.pixelSize: 16
+                color: Material.theme === Material.Dark ? "#ddd" : "#333"
+                visible: !figureGameOverOverlay.visible && !countdownOverlay.visible
+                Layout.alignment: Qt.AlignVCenter
             }
 
-            Rectangle {
-                width: 5
-                height: 16
-                radius: 2
-                color: "white"
-                anchors.verticalCenter: parent.verticalCenter
-                anchors.left: parent.horizontalCenter
-                anchors.leftMargin: 2
+            // Кнопка "Пауза"
+            Item {
+                width: 40
+                height: 40
+                visible: !figureGameOverOverlay.visible && !countdownOverlay.visible
+
+                Rectangle {
+                    anchors.fill: parent
+                    radius: width / 2
+                    color: Material.theme === Material.Dark ? "#888888" : "#666666"
+                }
+
+                Rectangle {
+                    width: 5
+                    height: 16
+                    radius: 2
+                    color: "white"
+                    anchors.verticalCenter: parent.verticalCenter
+                    anchors.right: parent.horizontalCenter
+                    anchors.rightMargin: 2
+                }
+
+                Rectangle {
+                    width: 5
+                    height: 16
+                    radius: 2
+                    color: "white"
+                    anchors.verticalCenter: parent.verticalCenter
+                    anchors.left: parent.horizontalCenter
+                    anchors.leftMargin: 2
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: root.togglePause()
+                }
+
+                Layout.alignment: Qt.AlignVCenter
             }
 
-            MouseArea {
-                anchors.fill: parent
-                cursorShape: Qt.PointingHandCursor
-                onClicked: root.togglePause()
-            }
-        }
+            // Кнопка "Стоп"
+            Item {
+                width: 40
+                height: 40
+                visible: root.moduleData && root.moduleData.endlessMode && !figureGameOverOverlay.visible && !countdownOverlay.visible
 
-        // Кнопка "Стоп" — только в бесконечном режиме
-        Item {
-            width: 40
-            height: 40
-            visible: moduleData && moduleData.endlessMode
+                Rectangle {
+                    anchors.fill: parent
+                    radius: width / 2
+                    color: Material.theme === Material.Dark ? "#888888" : "#666666"
+                }
 
-            Rectangle {
-                anchors.fill: parent
-                radius: width / 2
-                color: "#666666"
-            }
+                Rectangle {
+                    width: 14
+                    height: 14
+                    color: Material.theme === Material.Dark ? "#ddd" : "white"
+                    radius: 3
+                    anchors.centerIn: parent
+                }
 
-            Rectangle {
-                width: 14
-                height: 14
-                color: "white"
-                radius: 3
-                anchors.centerIn: parent
-            }
+                MouseArea {
+                    anchors.fill: parent
+                    onClicked: root.endGame()
+                    cursorShape: Qt.PointingHandCursor
+                }
 
-            MouseArea {
-                anchors.fill: parent
-                onClicked: root.endGame()
-                cursorShape: Qt.PointingHandCursor
+                Layout.alignment: Qt.AlignVCenter
             }
         }
     }
+
 
 
     RowLayout {
@@ -221,7 +228,7 @@ Item {
             id: timerBar
             height: parent.height
             width: parent.width
-            color: "orange"
+            color: Material.theme === Material.Dark ? "#00FFFF" : "#4682B4"
             anchors.left: parent.left
         }
 
@@ -343,12 +350,13 @@ Item {
         z: 1000
 
         Rectangle {
-            width: parent.width * 0.5
+            width: parent.width * 0.6
             height: parent.height * 0.35
             radius: 12
             anchors.centerIn: parent
-            color: "#ffffff"
-            border.color: "#cccccc"
+
+            color: Material.theme === Material.Light ? "#ffffff" : "#2c3e50"
+            border.color: Material.theme === Material.Light ? "#cccccc" : "#34495e"
             border.width: 1
 
             Column {
@@ -359,7 +367,7 @@ Item {
                 Text {
                     text: "Тренировка\nокончена!"
                     font.pixelSize: 26
-                    color: "black"
+                    color: Material.theme === Material.Light ? "black" : "#ecf0f1"
                     horizontalAlignment: Text.AlignHCenter
                     wrapMode: Text.Wrap
                     anchors.horizontalCenter: parent.horizontalCenter
@@ -370,7 +378,7 @@ Item {
                         ? "Результат: " + score + " из " + currentRound
                         : "Результат: " + score + " из " + maxRounds
                     font.pixelSize: 20
-                    color: "black"
+                    color: Material.theme === Material.Light ? "black" : "#ecf0f1"
                     horizontalAlignment: Text.AlignHCenter
                     anchors.horizontalCenter: parent.horizontalCenter
                 }
@@ -381,7 +389,6 @@ Item {
                     onClicked: {
                         figureGameOverOverlay.visible = false
                         startCountdown()
-
                     }
                 }
             }

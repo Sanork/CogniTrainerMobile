@@ -2,14 +2,36 @@ import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 import QtQuick.Window 2.15
+import Qt.labs.settings 1.1
 
 ApplicationWindow {
+    id: root
     visible: true
     width: 360
     height: 640
     title: qsTr("Когнитивное приложение")
+    Material.labelFontSize: 16
+
+    Settings {
+        id: appSettings
+    }
+
+    // Читаем тему из настроек один раз при старте
+    property int savedTheme: Material.Light
+    Component.onCompleted: {
+        var themeStr = appSettings.value("theme", "light")
+        console.log("Loaded theme from settings:", themeStr)
+        Material.theme = themeStr === "dark" ? Material.Dark : Material.Light
+    }
+
+    // Реактивно меняем фон под тему
+    Material.background: Material.theme === Material.Light ? "white" : "#1B232D"
+    Material.accent: Material.Blue
+
 
     property int currentTab: 0
+
+    property bool tabsVisible: true
 
     ColumnLayout {
         anchors.fill: parent
@@ -23,7 +45,29 @@ ApplicationWindow {
             initialItem: trainingsPageComponent
         }
 
+        Connections {
+            target: stackView
+
+            onPushTransitionChanged: {
+                Qt.callLater(updateTabsVisibility)
+            }
+            onPopTransitionChanged: {
+                Qt.callLater(updateTabsVisibility)
+            }
+        }
+
+        function updateTabsVisibility() {
+            const topItem = stackView.currentItem
+            if (topItem && topItem.hidesTabs) {
+                tabsVisible = false
+            } else {
+                tabsVisible = true
+            }
+        }
+
+
         TabBar {
+            visible: tabsVisible
             Layout.fillWidth: true
             height: 56
 
@@ -78,6 +122,10 @@ ApplicationWindow {
 
     Component {
         id: settingsPageComponent
-        SettingsPage { }
+        SettingsPage {
+            appSettingsRef: appSettings  // передаем Settings сюда
+        }
     }
+
+
 }

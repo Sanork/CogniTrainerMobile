@@ -26,7 +26,7 @@ QUrl StroopGame::qmlSettingsUrl() const {
 }
 // Переопределяем метод category
 QString StroopGame::category() const {
-    return "Тест";
+    return "Внимание";
 }
 
 // Переопределяем метод для иконки

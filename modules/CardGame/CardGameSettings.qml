@@ -3,6 +3,8 @@ import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 import QtQuick.Shapes 1.15
 
+import "../../"
+
 Item {
     id: root
     anchors.fill: parent
@@ -38,30 +40,43 @@ Item {
         }
     }
 
-    ToolButton {
-        text: "\u2190"
-        font.pixelSize: 30
-        onClicked: stackView.pop()
-    }
 
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: 20
         spacing: 30
 
-        Text {
-            text: moduleData.description
-            font.pixelSize: 22
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: 12
+
+            ToolButton {
+                text: "\u2190"
+                font.pixelSize: 28
+                onClicked: stackViewRef?.pop()
+                Material.foreground: Material.theme === Material.Dark ? "white" : "black"
+            }
+
+            AppLabel {
+                text: moduleData?.name || "Модуль"
+                Layout.fillWidth: true
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
+            }
+
+            Item { width: 28 }
+        }
+
+        Label {
+            text: moduleData?.description || ""
             wrapMode: Text.WordWrap
             horizontalAlignment: Text.AlignHCenter
             Layout.alignment: Qt.AlignHCenter
-            Layout.preferredWidth: root.width * 0.8  // или колонка.width * 0.8, если доступно
-            width: root.width * 0.8
+            Layout.preferredWidth: root.width * 0.85
         }
 
         Label {
             text: "Выберите размер поля"
-            font.pixelSize: 18
             Layout.alignment: Qt.AlignHCenter
         }
 
@@ -93,17 +108,17 @@ Item {
             }
 
             Rectangle {
-                width: 140
-                height: 60
-                color: "#eeeeee"
-                radius: 10
-                border.color: "black"
+                   width: 100
+                   height: 60
+                   radius: 10
+                   color: Material.theme === Material.Dark ? "#444" : "#eeeeee"
+                   border.color: Material.theme === Material.Dark ? "#aaa" : "black"
 
                 Text {
                     anchors.centerIn: parent
                     text: gridColumns + " x " + gridRows
                     font.pixelSize: 32
-                    color: "black"
+                    color: Material.theme === Material.Dark ? "white" : "black"
                 }
             }
 

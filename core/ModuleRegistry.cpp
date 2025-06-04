@@ -6,6 +6,11 @@
 #include "../modules/FindGame/FindGame.h"
 #include "../modules/ReactGame/ReactGame.h"
 #include "../modules/DigitSpanTest/DigitSpanTest.h"
+#include "../modules/TrailMakingTest/TrailMakingTest.h"
+#include "../modules/TrackGame/TrackGame.h"
+#include "../modules/TypingSpeedGame/TypingSpeedGame.h"
+#include "../modules/ReverseTypingGame/ReverseTypingGame.h"
+#include "../modules/ArrowSequenceGame/ArrowSequenceGame.h"
 
 ModuleRegistry::ModuleRegistry(QObject *parent)
     : QObject(parent)
@@ -42,5 +47,10 @@ void ModuleRegistry::loadModules()
     tryAddModule(new FindGame(this));
     tryAddModule(new ReactGame(this));
     tryAddModule(new DigitSpanTest(this));
+    tryAddModule(new TrailMakingTest(this));
+    tryAddModule(new TrackGame(this));
+    tryAddModule(new TypingSpeedGame(this));
+    tryAddModule(new ReverseTypingGame(this));
+    tryAddModule(new ArrowSequenceGame(this));
 }
 

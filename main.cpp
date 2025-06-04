@@ -8,6 +8,10 @@
 
 int main(int argc, char *argv[])
 {
+
+    QCoreApplication::setOrganizationName("MyCompany");
+    QCoreApplication::setOrganizationDomain("mycompany.com");
+    QCoreApplication::setApplicationName("CognitiveApp");
     QGuiApplication app(argc, argv);
 
     QQmlApplicationEngine engine;

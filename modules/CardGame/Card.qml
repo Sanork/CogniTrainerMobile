@@ -20,6 +20,14 @@ Item {
     property real angle: 0
     property bool showFront: flipped || matched
 
+    // Цвета в зависимости от темы
+    property color frontColor: matched
+        ? (Material.theme === Material.Light ? "#aaffaa" : "#335533")
+        : (Material.theme === Material.Light ? "#ffffff" : "#1e1e1e")
+    property color backColor: Material.theme === Material.Light ? "#888888" : "#555555"
+    property color borderColor: Material.theme === Material.Light ? "#444444" : "#aaaaaa"
+    property color textColor: Material.theme === Material.Light ? "black" : "#ddd"
+
     // Переворот: 0 → 90 → меняем сторону → 90 → 0
     SequentialAnimation on angle {
         id: flipAnimation
@@ -30,11 +38,11 @@ Item {
     }
 
     onFlippedChanged: {
-            if (!matched && allowFlipAnimation)
-                flipAnimation.start()
-            else
-                showFront = flipped || matched  // мгновенно, без анимации
-        }
+        if (!matched && allowFlipAnimation)
+            flipAnimation.start()
+        else
+            showFront = flipped || matched  // мгновенно, без анимации
+    }
 
     MouseArea {
         anchors.fill: parent
@@ -59,15 +67,15 @@ Item {
             width: parent.width
             height: parent.height
             radius: 10
-            color: matched ? "#aaffaa" : "#ffffff"
-            border.color: "#444"
+            color: root.frontColor
+            border.color: root.borderColor
             border.width: 1
 
             Text {
                 anchors.centerIn: parent
                 font.pixelSize: 30
-                text: value
-                color: "black"
+                text: root.value
+                color: root.textColor
             }
         }
 
@@ -77,8 +85,8 @@ Item {
             width: parent.width
             height: parent.height
             radius: 10
-            color: "#888888"
-            border.color: "#444"
+            color: root.backColor
+            border.color: root.borderColor
             border.width: 1
         }
     }

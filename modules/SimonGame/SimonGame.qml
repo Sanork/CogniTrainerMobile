@@ -186,8 +186,9 @@ Item {
             height: parent.height * 0.35
             radius: 12
             anchors.centerIn: parent
-            color: "#ffffff"
-            border.color: "#cccccc"
+
+            color: Material.theme === Material.Light ? "#ffffff" : "#2c3e50"
+            border.color: Material.theme === Material.Light ? "#cccccc" : "#34495e"
             border.width: 1
 
             Column {
@@ -198,20 +199,19 @@ Item {
                 Text {
                     text: "Тренировка\nокончена!"
                     font.pixelSize: 26
-                    color: "black"
+                    color: Material.theme === Material.Light ? "black" : "#ecf0f1"
                     horizontalAlignment: Text.AlignHCenter
                     wrapMode: Text.Wrap
                     anchors.horizontalCenter: parent.horizontalCenter
                 }
 
                 Text {
-                    text: "Длина цепочки: " + simonGame.score;
+                    text: "Длина цепочки: " + simonGame.score
                     font.pixelSize: 20
-                    color: "black"
+                    color: Material.theme === Material.Light ? "black" : "#ecf0f1"
                     horizontalAlignment: Text.AlignHCenter
                     anchors.horizontalCenter: parent.horizontalCenter
                 }
-
 
                 Button {
                     text: "Сыграть снова"
@@ -224,6 +224,7 @@ Item {
             }
         }
     }
+
     onGameOver: {
         simonGame.acceptingInput = false;
         console.log("Игра окончена. Правильная последовательность:", simonGame.sequence);

@@ -7,6 +7,8 @@ Item {
     visible: true
     anchors.fill: parent
 
+    property bool hidesTabs: true
+
     property StackView stackViewRef
     property var moduleData
     property int difficultyValue: moduleData ? moduleData.difficulty : 5
@@ -14,7 +16,7 @@ Item {
 
     property int clickCount: 0
     property int roundCount: 0
-    property int totalRounds: 50
+    property int totalRounds: 10
     property bool answeredThisRound: false
     property bool processingRound: false
 
@@ -50,28 +52,26 @@ Item {
         `, hitMarkerLayer);
     }
 
-    Rectangle {
-        anchors.fill: parent
-        color: "#ffffff"
 
         Rectangle {
             id: topBar
             height: 56
             width: parent.width
-            color: "#f0f0f0"
             anchors.top: parent.top
-            border.color: "#cccccc"
+            color: Material.theme === Material.Dark ? "#303030" : "#f0f0f0"
+            border.color: Material.theme === Material.Dark ? "#555555" : "#cccccc"
 
             RowLayout {
                 anchors.fill: parent
-                anchors.margins: 8
+
+                anchors.rightMargin: 8
                 spacing: 4
 
                 ToolButton {
                     text: "\u2190"
-                    font.pixelSize: 24
-                    onClicked: root.stackViewRef.pop()
-                    Layout.alignment: Qt.AlignVCenter
+                    font.pixelSize: 28
+                    onClicked: stackViewRef?.pop()
+                    Material.foreground: Material.theme === Material.Dark ? "white" : "black"
                 }
 
                 Item {
@@ -86,11 +86,10 @@ Item {
                                 : "0%") + ")"
                           : "Круг: " + (root.roundCount + 1) + " из " + root.totalRounds
                     font.pixelSize: 16
-                    color: "#333"
+                    color: Material.theme === Material.Dark ? "#ddd" : "#333"
                     visible: !gameOverOverlay.visible
                     Layout.alignment: Qt.AlignVCenter
                 }
-
 
                 Item {
                     width: 40
@@ -100,7 +99,7 @@ Item {
                     Rectangle {
                         anchors.fill: parent
                         radius: width / 2
-                        color: "#666666"
+                        color: Material.theme === Material.Dark ? "#888888" : "#666666"
                     }
 
                     // Левая палочка
@@ -108,7 +107,7 @@ Item {
                         width: 5
                         height: 16
                         radius: 2
-                        color: "white"
+                        color: Material.theme === Material.Dark ? "white" : "white"
                         anchors.verticalCenter: parent.verticalCenter
                         anchors.right: parent.horizontalCenter
                         anchors.rightMargin: 2
@@ -119,7 +118,7 @@ Item {
                         width: 5
                         height: 16
                         radius: 2
-                        color: "white"
+                        color: Material.theme === Material.Dark ? "white" : "white"
                         anchors.verticalCenter: parent.verticalCenter
                         anchors.left: parent.horizontalCenter
                         anchors.leftMargin: 2
@@ -134,7 +133,6 @@ Item {
                     Layout.alignment: Qt.AlignVCenter
                 }
 
-
                 Item {
                     width: 40
                     height: 40
@@ -143,13 +141,13 @@ Item {
                     Rectangle {
                         anchors.fill: parent
                         radius: width / 2
-                        color: "#666666"
+                        color: Material.theme === Material.Dark ? "#888888" : "#666666"
                     }
 
                     Rectangle {
                         width: 14
                         height: 14
-                        color: "white"
+                        color: Material.theme === Material.Dark ? "#ddd" : "white"
                         radius: 3
                         anchors.centerIn: parent
                     }
@@ -162,11 +160,9 @@ Item {
 
                     Layout.alignment: Qt.AlignVCenter
                 }
-
-
-
             }
         }
+
 
         Item {
             id: hitMarkerLayer
@@ -259,39 +255,43 @@ Item {
             z: 1000
 
             Rectangle {
+                id: dialogRect
                 width: parent.width * 0.5
                 height: parent.height * 0.35
                 radius: 12
                 anchors.centerIn: parent
-                color: "#ffffff"
-                border.color: "#cccccc"
+
+                color: Material.theme === Material.Light ? "#C9E9FF" : "#2c3e50"
+                border.color: Material.theme === Material.Light ? "#cccccc" : "#34495e"
                 border.width: 1
 
                 Column {
-                    anchors.centerIn: parent
+                    anchors.fill: parent
+                    anchors.margins: 20
                     spacing: 16
-                    width: parent.width
+                    // Центрируем содержимое по вертикали и горизонтали
+                    anchors.verticalCenter: parent.verticalCenter
+                    anchors.horizontalCenter: parent.horizontalCenter
 
-                    Text {
+                    Label {
                         text: "Тренировка\nокончена!"
                         font.pixelSize: 26
-                        color: "black"
                         horizontalAlignment: Text.AlignHCenter
                         wrapMode: Text.Wrap
+                        color: Material.theme === Material.Light ? "#000000" : "#ecf0f1"
                         anchors.horizontalCenter: parent.horizontalCenter
                     }
 
-                    Text {
+                    Label {
                         text: "Точность: " +
                               (root.roundCount > 0
                                 ? Math.round(root.clickCount / root.roundCount * 100) + " %"
                                 : "0 %")
                         font.pixelSize: 20
-                        color: "black"
                         horizontalAlignment: Text.AlignHCenter
+                        color: Material.theme === Material.Light ? "#000000" : "#ecf0f1"
                         anchors.horizontalCenter: parent.horizontalCenter
                     }
-
 
                     Button {
                         text: "Сыграть снова"
@@ -389,8 +389,6 @@ Item {
                 }
             }
         }
-
-    }
 
     function endGame() {
         autoMoveTimer.stop();

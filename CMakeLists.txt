@@ -4,7 +4,7 @@ project(CogniTrainerMobile VERSION 0.1 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Quick QuickControls2)
+find_package(Qt6 REQUIRED COMPONENTS Quick QuickControls2 TextToSpeech)
 
 qt_standard_project_setup(REQUIRES 6.8)
 
@@ -40,7 +40,11 @@ qt_add_resources(appCogniTrainerMobile "app_modules"
         modules/FindGame/
         modules/ReactGame/
         modules/DigitSpanTest/
-
+        modules/TrailMakingTest/
+        modules/TrackGame/
+        modules/TypingSpeedGame/
+        modules/ReverseTypingGame/
+        modules/ArrowSequenceGame/
 )
 
 
@@ -81,6 +85,24 @@ qt_add_qml_module(appCogniTrainerMobile
         SOURCES modules/DigitSpanTest/DigitSpanTest.h modules/DigitSpanTest/DigitSpanTest.cpp
         QML_FILES modules/DigitSpanTest/DigitSpanTestSettings.qml
         QML_FILES modules/DigitSpanTest/DigitSpanTest.qml
+        QML_FILES
+        SOURCES modules/TrailMakingTest/TrailMakingTest.h modules/TrailMakingTest/TtrailMakingTest.cpp
+        QML_FILES modules/TrailMakingTest/TrailMakingTestSettings.qml
+        QML_FILES modules/TrailMakingTest/TrailMakingTest.qml
+        SOURCES
+        SOURCES modules/TrackGame/TrackGame.h modules/TrackGame/TrackGame.cpp
+        QML_FILES modules/TrackGame/TrackGameSettings.qml
+        QML_FILES modules/TrackGame/TrackGame.qml
+        SOURCES modules/TypingSpeedGame/TypingSpeedGame.h modules/TypingSpeedGame/TypingSpeedGame.cpp
+        QML_FILES modules/TypingSpeedGame/TypingSpeedGameSettings.qml
+        QML_FILES modules/TypingSpeedGame/TypingSpeedGame.qml
+        SOURCES modules/ReverseTypingGame/ReverseTypingGame.h modules/ReverseTypingGame/ReverseTypingGame.cpp
+        QML_FILES modules/ReverseTypingGame/ReverseTypingGameSettings.qml
+        QML_FILES modules/ReverseTypingGame/ReverseTypingGame.qml
+        SOURCES modules/ArrowSequenceGame/ArrowSequenceGame.h modules/ArrowSequenceGame/ArrowSequenceGame.cpp
+        QML_FILES modules/ArrowSequenceGame/ArrowSequenceGameSettings.qml
+        QML_FILES modules/ArrowSequenceGame/ArrowSequenceGame.qml
+        QML_FILES AppLabel.qml
         #QML_FILES CategoryModulesView.qml
         #QML_FILES modules/CircleGame/CircleGameSettings.qml
         #RESOURCES resources.qrc
@@ -99,6 +121,7 @@ set_target_properties(appCogniTrainerMobile PROPERTIES
 target_link_libraries(appCogniTrainerMobile
     PRIVATE Qt6::Quick
     Qt6::QuickControls2
+    Qt6::TextToSpeech
 
 )
 

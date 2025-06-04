@@ -11,7 +11,7 @@ Item {
 
     property bool endlessMode: moduleData?.endlessMode ?? false
 
-    property int totalRounds: 5
+    property int totalRounds: 3
     property int roundCount: 0
     property int clickCount: 0
     property real totalReactionTime: 0
@@ -36,9 +36,9 @@ Item {
     }
 
     // Игровой фон
-    Rectangle {
+    Frame {
         anchors.fill: parent
-        color: "white"
+        //color: "white"
         z: 0
     }
 
@@ -47,20 +47,21 @@ Item {
         id: topBar
         height: 56
         width: parent.width
-        color: "#f0f0f0"
         anchors.top: parent.top
-        border.color: "#cccccc"
+        color: Material.theme === Material.Dark ? "#303030" : "#f0f0f0"
+        border.color: Material.theme === Material.Dark ? "#555555" : "#cccccc"
         z: 10
 
         RowLayout {
             anchors.fill: parent
-            anchors.margins: 8
+            anchors.rightMargin: 8
             spacing: 4
 
             ToolButton {
                 text: "\u2190"
-                font.pixelSize: 24
-                onClicked: root.stackViewRef.pop()
+                font.pixelSize: 28
+                onClicked: root.stackViewRef?.pop()
+                Material.foreground: Material.theme === Material.Dark ? "white" : "black"
                 Layout.alignment: Qt.AlignVCenter
             }
 
@@ -73,7 +74,7 @@ Item {
                           : "—")
                       : "Раунд: " + (roundCount + 1) + " из " + totalRounds
                 font.pixelSize: 16
-                color: "#333"
+                color: Material.theme === Material.Dark ? "#ddd" : "#333"
                 visible: !gameOverOverlay.visible
                 Layout.alignment: Qt.AlignVCenter
             }
@@ -87,27 +88,29 @@ Item {
                 Rectangle {
                     anchors.fill: parent
                     radius: width / 2
-                    color: "#666666"
+                    color: Material.theme === Material.Dark ? "#888888" : "#666666"
                 }
 
+                // Левая палочка
                 Rectangle {
                     width: 5
-                    height: 18
+                    height: 16
                     radius: 2
                     color: "white"
                     anchors.verticalCenter: parent.verticalCenter
                     anchors.right: parent.horizontalCenter
-                    anchors.rightMargin: 3
+                    anchors.rightMargin: 2
                 }
 
+                // Правая палочка
                 Rectangle {
                     width: 5
-                    height: 18
+                    height: 16
                     radius: 2
                     color: "white"
                     anchors.verticalCenter: parent.verticalCenter
                     anchors.left: parent.horizontalCenter
-                    anchors.leftMargin: 3
+                    anchors.leftMargin: 2
                 }
 
                 MouseArea {
@@ -128,13 +131,13 @@ Item {
                 Rectangle {
                     anchors.fill: parent
                     radius: width / 2
-                    color: "#666666"
+                    color: Material.theme === Material.Dark ? "#888888" : "#666666"
                 }
 
                 Rectangle {
                     width: 14
                     height: 14
-                    color: "white"
+                    color: Material.theme === Material.Dark ? "#ddd" : "white"
                     radius: 3
                     anchors.centerIn: parent
                 }
@@ -149,6 +152,7 @@ Item {
             }
         }
     }
+
 
     // Игровое поле
     Rectangle {
@@ -195,61 +199,74 @@ Item {
 
     // Оверлей окончания
     Rectangle {
-           id: gameOverOverlay
-           anchors.fill: parent
-           visible: false
-           color: Qt.rgba(0, 0, 0, 0.6)
-           z: 100
+        id: gameOverOverlay
+        visible: false
+        anchors.fill: parent
+        color: Qt.rgba(0, 0, 0, 0.6)
+        z: 1000
 
-           Rectangle {
-               width: 300
-               height: 260
-               radius: 12
-               color: "white"
-               anchors.centerIn: parent
+        Rectangle {
+            id: dialogRect
+            width: 300
+            height: 260
+            radius: 12
+            anchors.centerIn: parent
 
-               Column {
-                   anchors.centerIn: parent
-                   spacing: 12
+            color: Material.theme === Material.Light ? "#C9E9FF" : "#2c3e50"
+            border.color: Material.theme === Material.Light ? "#cccccc" : "#34495e"
+            border.width: 1
 
-                   Text {
-                       text: "Тренировка окончена!"
-                       font.pixelSize: 24
-                       color: "#333333"
-                       horizontalAlignment: Text.AlignHCenter
-                       width: parent.width
-                   }
+            Column {
+                anchors.fill: parent
+                anchors.margins: 20
+                spacing: 12
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.horizontalCenter: parent.horizontalCenter
 
-                   Text {
-                       text: "Среднее время: " + (clickCount > 0
-                             ? Math.round(totalReactionTime / clickCount) + " мс"
-                             : "—")
-                       font.pixelSize: 18
-                       color: "#555"
-                   }
+                Label {
+                    text: "Тренировка окончена!"
+                    font.pixelSize: 26
+                    horizontalAlignment: Text.AlignHCenter
+                    wrapMode: Text.Wrap
+                    color: Material.theme === Material.Light ? "#000000" : "#ecf0f1"
+                    anchors.horizontalCenter: parent.horizontalCenter
+                }
 
-                   Text {
-                       text: "Лучшее время: " + (bestReactionTime < 999999
-                             ? Math.round(bestReactionTime) + " мс"
-                             : "—")
-                       font.pixelSize: 18
-                       color: "#555"
-                   }
+                Label {
+                    text: "Среднее время: " + (root.clickCount > 0
+                        ? Math.round(root.totalReactionTime / root.clickCount) + " мс"
+                        : "—")
+                    font.pixelSize: 18
+                    horizontalAlignment: Text.AlignHCenter
+                    color: Material.theme === Material.Light ? "#000000" : "#ecf0f1"
+                    anchors.horizontalCenter: parent.horizontalCenter
+                }
 
-                   Text {
-                       text: "Фальстарты: " + falseStarts  // [добавлено]
-                       font.pixelSize: 18
-                       color: "#aa0000"
-                   }
+                Label {
+                    text: "Лучшее время: " + (root.bestReactionTime < 999999
+                        ? Math.round(root.bestReactionTime) + " мс"
+                        : "—")
+                    font.pixelSize: 18
+                    horizontalAlignment: Text.AlignHCenter
+                    color: Material.theme === Material.Light ? "#000000" : "#ecf0f1"
+                    anchors.horizontalCenter: parent.horizontalCenter
+                }
 
-                   Button {
-                       text: "Сыграть снова"
-                       onClicked: resetGame()
-                   }
-               }
-           }
-       }
+                Label {
+                    text: "Фальстарты: " + root.falseStarts
+                    font.pixelSize: 18
+                    horizontalAlignment: Text.AlignHCenter
+                    anchors.horizontalCenter: parent.horizontalCenter
+                }
 
+                Button {
+                    text: "Сыграть снова"
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    onClicked: resetGame()
+                }
+            }
+        }
+    }
 
     // Оверлей паузы
     Rectangle {

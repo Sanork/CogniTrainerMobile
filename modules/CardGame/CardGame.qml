@@ -164,33 +164,37 @@ Item {
         z: 1000
 
         Rectangle {
-            width: parent.width * 0.6
-            height: parent.height * 0.35
+            id: dialogRect
+            width: 300
+            height: 180
             radius: 12
             anchors.centerIn: parent
-            color: "#ffffff"
-            border.color: "#cccccc"
+
+            color: Material.theme === Material.Light ? "#C9E9FF" : "#2c3e50"
+            border.color: Material.theme === Material.Light ? "#cccccc" : "#34495e"
             border.width: 1
 
             Column {
-                anchors.centerIn: parent
-                spacing: 16
-                width: parent.width
+                anchors.fill: parent
+                anchors.margins: 20
+                spacing: 12
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.horizontalCenter: parent.horizontalCenter
 
-                Text {
-                    text: "Тренировка\nокончена!"
+                Label {
+                    text: "Тренировка окончена!"
                     font.pixelSize: 26
-                    color: "black"
                     horizontalAlignment: Text.AlignHCenter
                     wrapMode: Text.Wrap
+                    color: Material.theme === Material.Light ? "#000000" : "#ecf0f1"
                     anchors.horizontalCenter: parent.horizontalCenter
                 }
 
-                Text {
+                Label {
                     text: "Ходов: " + moveCount
-                    font.pixelSize: 20
-                    color: "black"
+                    font.pixelSize: 18
                     horizontalAlignment: Text.AlignHCenter
+                    color: Material.theme === Material.Light ? "#000000" : "#ecf0f1"
                     anchors.horizontalCenter: parent.horizontalCenter
                 }
 
@@ -206,6 +210,7 @@ Item {
             }
         }
     }
+
 
 
     Component.onCompleted: shuffleCards()

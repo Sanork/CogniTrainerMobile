@@ -11,21 +11,22 @@ Item {
     property var moduleData
     property var stackViewRef
 
-    property int difficulty: (moduleData && typeof moduleData.difficulty === "number") ? moduleData.difficulty : 5
-    property bool endlessMode: (moduleData && typeof moduleData.endlessMode === "boolean") ? moduleData.endlessMode : false
+    property int difficultyMode: 4
+    property bool endlessMode: false
 
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: 20
-        spacing: 30
+        spacing: 20   // уменьшил с 30 на 20 для компактности
 
+        // Верхняя панель
         RowLayout {
             Layout.fillWidth: true
-            spacing: 12
+            spacing: 10  // было 12
 
             ToolButton {
                 text: "\u2190"
-                font.pixelSize: 28
+                font.pixelSize: 30     // было 28 → 30, как во втором
                 onClicked: stackViewRef?.pop()
                 Material.foreground: Material.theme === Material.Dark ? "white" : "black"
             }
@@ -37,33 +38,37 @@ Item {
                 verticalAlignment: Text.AlignVCenter
             }
 
-            Item { width: 28 }
         }
 
+        // Инструкция
         Label {
             text: moduleData?.description || ""
             wrapMode: Text.WordWrap
             horizontalAlignment: Text.AlignHCenter
             Layout.alignment: Qt.AlignHCenter
-            Layout.preferredWidth: root.width * 0.85
+            Layout.preferredWidth: root.width * 0.8   // как во втором
         }
 
+        // Подпись выбора сложности
         Label {
-            text: "Выберите уровень сложности"
-            font.pixelSize: 18
+            text: "Выберите длину последовательности"
+
+            font.weight: Font.DemiBold
             Layout.alignment: Qt.AlignHCenter
         }
 
+
+        // Панель выбора сложности
         RowLayout {
             Layout.alignment: Qt.AlignHCenter
-            spacing: 30
+            spacing: 20
 
             MouseArea {
-                width: 50
-                height: 50
+                width: 40  // было 50
+                height: 40
                 onClicked: {
-                    difficulty--
-                    if (difficulty < 1) difficulty = 10
+                    difficultyMode--
+                    if (difficultyMode < 1) difficultyMode = 8
                 }
 
                 Shape {
@@ -71,35 +76,35 @@ Item {
                     ShapePath {
                         strokeWidth: 0
                         fillColor: "gray"
-                        startX: 35; startY: 10
-                        PathLine { x: 15; y: 25 }
-                        PathLine { x: 35; y: 40 }
-                        PathLine { x: 35; y: 10 }
+                        startX: 28; startY: 8
+                        PathLine { x: 12; y: 20 }
+                        PathLine { x: 28; y: 32 }
+                        PathLine { x: 28; y: 8 }
                     }
                 }
             }
 
             Rectangle {
-                   width: 100
-                   height: 60
-                   radius: 10
-                   color: Material.theme === Material.Dark ? "#444" : "#eeeeee"
-                   border.color: Material.theme === Material.Dark ? "#aaa" : "black"
+                width: 80   // было 100
+                height: 50  // было 60
+                radius: 8
+                color: Material.theme === Material.Dark ? "#444" : "#eeeeee"
+                border.color: Material.theme === Material.Dark ? "#aaa" : "black"
 
-                   Text {
-                       anchors.centerIn: parent
-                       text: difficulty
-                       font.pixelSize: 32
-                       color: Material.theme === Material.Dark ? "white" : "black"
-                   }
-               }
+                Text {
+                    anchors.centerIn: parent
+                    text: difficultyMode
+                    font.pixelSize: 28   // было 32
+                    color: Material.theme === Material.Dark ? "white" : "black"
+                }
+            }
 
             MouseArea {
-                width: 50
-                height: 50
+                width: 40
+                height: 40
                 onClicked: {
-                    difficulty++
-                    if (difficulty > 10) difficulty = 1
+                    difficultyMode++
+                    if (difficultyMode > 8) difficultyMode = 1
                 }
 
                 Shape {
@@ -107,14 +112,17 @@ Item {
                     ShapePath {
                         strokeWidth: 0
                         fillColor: "gray"
-                        startX: 15; startY: 10
-                        PathLine { x: 35; y: 25 }
-                        PathLine { x: 15; y: 40 }
+                        startX: 12; startY: 8
+                        PathLine { x: 28; y: 20 }
+                        PathLine { x: 12; y: 32 }
                     }
                 }
             }
         }
 
+
+
+        // Бесконечный режим
         CheckBox {
             text: "Бесконечный режим"
             checked: endlessMode
@@ -122,20 +130,22 @@ Item {
             onCheckedChanged: endlessMode = checked
         }
 
+
+        // Кнопка продолжить
         Button {
             text: "Продолжить"
             Layout.alignment: Qt.AlignHCenter
+            width: 280   // чуть меньше 300
             onClicked: {
-                if (moduleData?.setDifficulty) {
-                    moduleData.setDifficulty(difficulty)
-                    moduleData.endlessMode = endlessMode
-
+                if (moduleData) {
                     stackViewRef.push(moduleData.qmlComponentUrl, {
                         moduleData: moduleData,
-                        stackViewRef: stackViewRef
+                        stackViewRef: stackViewRef,
+                        endlessMode: endlessMode,
+                        difficultyMode: difficultyMode
                     })
                 } else {
-                    console.warn("Ошибка: moduleData или setDifficulty не определены")
+                    console.warn("Ошибка: moduleData не определён")
                 }
             }
         }

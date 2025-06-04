@@ -4,13 +4,13 @@ import QtQuick.Layouts 1.15
 import Qt5Compat.GraphicalEffects
 
 Item {
+    id:root
     property var moduleData
     anchors.fill: parent
 
-    Rectangle {
+    Frame {
         id: gameArea
         anchors.fill: parent
-        color: "#2b2b2b"
         property bool isPaused: false
 
         // === Данные ===
@@ -39,9 +39,9 @@ Item {
             font.pixelSize: 24
             onClicked: stackView.pop()
             background: Rectangle { color: "transparent" }
-            contentItem: Text {
+            contentItem: Label {
                 text: "\u2190"
-                color: "white"
+                //color: "white"
                 font.pixelSize: 24
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
@@ -270,16 +270,19 @@ Item {
                 horizontalAlignment: Text.AlignHCenter
                 anchors.top: parent.top
                 anchors.horizontalCenter: parent.horizontalCenter
+
                 layer.enabled: true
                 layer.effect: DropShadow {
                     color: "black"
-                    radius: 6
-                    samples: 16
+                    radius: 10
+                    samples: 32  // большее сглаживание
                     horizontalOffset: 0
                     verticalOffset: 0
                     transparentBorder: true
                 }
             }
+
+
 
             GridLayout {
                 id: colorGrid
@@ -303,12 +306,12 @@ Item {
                         background: Rectangle {
                             color: {
                                 if (gameArea.selectedAnswer === modelData) {
-                                    return gameArea.answerCorrect ? "green" : "darkred"
+                                    return gameArea.answerCorrect ? "#4caf50" : "#b00020" // зелёный/красный
                                 } else {
-                                    return "#3a3a3a"
+                                    return Material.theme === Material.Dark ? "#2c3e50" : "#eeeeee"
                                 }
                             }
-                            border.color: "white"
+                            border.color: Material.theme === Material.Dark ? "#aaaaaa" : "#444444"
                             radius: 8
 
                             Behavior on color {
@@ -321,7 +324,7 @@ Item {
 
                         contentItem: Text {
                             text: modelData
-                            color: "white"
+                            color: Material.theme === Material.Dark ? "white" : "black"
                             font.pixelSize: 24
                             horizontalAlignment: Text.AlignHCenter
                             verticalAlignment: Text.AlignVCenter
@@ -333,12 +336,12 @@ Item {
             }
 
             // === СЧЁТЧИК РАУНДОВ ===
-            Text {
+            Label {
                 id: roundsCounter
                 text: moduleData.endlessMode
                     ? (gameArea.currentRound === 0 ? "" : "Правильно: " + gameArea.correctCount + " из " + gameArea.currentRound)
                     : "Слово " + gameArea.currentRound + " из " + gameArea.maxRounds
-                color: "white"
+                //color: "white"
                 font.pixelSize: 18
                 horizontalAlignment: Text.AlignHCenter
                 anchors.top: colorGrid.bottom
@@ -357,13 +360,15 @@ Item {
             anchors.right: parent.right
             anchors.bottom: parent.bottom
             height: 10
-            color: "#555"
+            color: Material.theme === Material.Dark ? "#444" : "#ccc"  // фон полосы
 
             Rectangle {
                 id: timerBar
                 height: parent.height
                 width: parent.width * (gameArea.timeLeft * 1000 / gameArea.roundDuration)
-                color: "orange"
+                color: Material.theme === Material.Dark ? "#00FFFF" : "#4682B4"
+
+
                 anchors.left: parent.left
 
                 Behavior on width {
@@ -383,25 +388,27 @@ Item {
             z: 1000
 
             Rectangle {
-                width: parent.width * 0.5
-                height: parent.height * 0.35
+                width: 300
+                height: 200
                 radius: 12
                 anchors.centerIn: parent
-                color: "#ffffff"
-                border.color: "#cccccc"
+                color: Material.theme === Material.Light ? "#C9E9FF" : "#2c3e50"
+                border.color: Material.theme === Material.Light ? "#cccccc" : "#34495e"
                 border.width: 1
 
                 Column {
-                    anchors.centerIn: parent
-                    spacing: 16
-                    width: parent.width
+                    anchors.fill: parent
+                    anchors.margins: 20
+                    spacing: 12
+                    anchors.verticalCenter: parent.verticalCenter
+                    anchors.horizontalCenter: parent.horizontalCenter
 
                     Text {
                         text: "Тренировка\nокончена!"
                         font.pixelSize: 26
-                        color: "black"
-                        horizontalAlignment: Text.AlignHCenter
                         wrapMode: Text.Wrap
+                        horizontalAlignment: Text.AlignHCenter
+                        color: Material.theme === Material.Light ? "#000000" : "#ecf0f1"
                         anchors.horizontalCenter: parent.horizontalCenter
                     }
 
@@ -410,8 +417,8 @@ Item {
                             ? "Точность: " + (gameArea.currentRound > 0 ? Math.round((gameArea.correctCount / gameArea.currentRound) * 100) : 0) + " %"
                             : "Точность: " + Math.round((gameArea.score / gameArea.maxRounds) * 100) + " %"
                         font.pixelSize: 20
-                        color: "black"
                         horizontalAlignment: Text.AlignHCenter
+                        color: Material.theme === Material.Light ? "#000000" : "#ecf0f1"
                         anchors.horizontalCenter: parent.horizontalCenter
                     }
 
@@ -429,6 +436,7 @@ Item {
                 }
             }
         }
+
 
         Item {
             id: pauseOverlay

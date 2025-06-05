@@ -7,8 +7,8 @@ Item {
     anchors.fill: parent
 
     property int score: 0
-    property int currentRound: 0
-    property int maxRounds: 20
+    property int currentRound: -1
+    property int maxRounds: 5
 
     property color baseColor: "#6699cc"
     property color targetColor: "#6699cc"
@@ -24,15 +24,12 @@ Item {
 
     property var moduleData
 
+    property bool isGameOver: false
+
     property bool isPaused: false
-
-
-
-
 
     Frame {
         anchors.fill: parent
-        //color: "#2b2b2b"
     }
 
     Rectangle {
@@ -61,52 +58,13 @@ Item {
 
             Text {
                 text: root.moduleData && root.moduleData.endlessMode
-                    ? "Раунд: " + currentRound
-                    : "Раунд: " + Math.min(currentRound, maxRounds) + " / " + maxRounds
+                    ? "Раунд: " + (currentRound + 1)
+                    : "Раунд: " + Math.min(currentRound + 1, maxRounds) + " / " + maxRounds
+
+
                 font.pixelSize: 16
                 color: Material.theme === Material.Dark ? "#ddd" : "#333"
                 visible: !figureGameOverOverlay.visible && !countdownOverlay.visible
-                Layout.alignment: Qt.AlignVCenter
-            }
-
-            // Кнопка "Пауза"
-            Item {
-                width: 40
-                height: 40
-                visible: !figureGameOverOverlay.visible && !countdownOverlay.visible
-
-                Rectangle {
-                    anchors.fill: parent
-                    radius: width / 2
-                    color: Material.theme === Material.Dark ? "#888888" : "#666666"
-                }
-
-                Rectangle {
-                    width: 5
-                    height: 16
-                    radius: 2
-                    color: "white"
-                    anchors.verticalCenter: parent.verticalCenter
-                    anchors.right: parent.horizontalCenter
-                    anchors.rightMargin: 2
-                }
-
-                Rectangle {
-                    width: 5
-                    height: 16
-                    radius: 2
-                    color: "white"
-                    anchors.verticalCenter: parent.verticalCenter
-                    anchors.left: parent.horizontalCenter
-                    anchors.leftMargin: 2
-                }
-
-                MouseArea {
-                    anchors.fill: parent
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: root.togglePause()
-                }
-
                 Layout.alignment: Qt.AlignVCenter
             }
 
@@ -167,11 +125,7 @@ Item {
             rightMargin: 20
             bottomMargin: 20
         }
-
     }
-
-
-
 
     Item {
         id: figuresContainer
@@ -215,7 +169,6 @@ Item {
         }
     }
 
-
     Rectangle {
         id: timerBarBackground
         anchors.left: parent.left
@@ -226,6 +179,8 @@ Item {
 
         Rectangle {
             id: timerBar
+            visible: true
+
             height: parent.height
             width: parent.width
             color: Material.theme === Material.Dark ? "#00FFFF" : "#4682B4"
@@ -241,7 +196,6 @@ Item {
             duration: 5000
         }
     }
-
 
     Item {
         id: countdownOverlay
@@ -309,8 +263,6 @@ Item {
             onClicked: root.togglePause()
         }
     }
-
-
 
     Timer {
         id: nextRoundDelay
@@ -398,7 +350,11 @@ Item {
     function startCountdown() {
         score = 0
         currentRound = 0
+        isGameOver = false
         isCountdownActive = true
+        awaitingNextRound = false
+        selectedIndex = -1      // Сброс выбора
+        lastChoiceCorrect = false  // Сброс результата выбора
         countdownOverlay.countdownValue = 3
         countdownOverlay.visible = true
         countdownTimer.start()
@@ -406,11 +362,19 @@ Item {
 
     function togglePause() {
         root.isPaused = !root.isPaused
+
         if (root.isPaused) {
+            // при паузе
+            wasNextRoundDelayScheduled = nextRoundDelay.running
             selectionTimer.stop()
             timerBarAnimation.pause()
+            nextRoundDelay.stop()
         } else {
-            if (!root.awaitingNextRound && !root.isCountdownActive) {
+            // при выходе из паузы
+            if (wasNextRoundDelayScheduled) {
+                wasNextRoundDelayScheduled = false
+                nextRoundDelay.start()
+            } else if (!root.awaitingNextRound && !root.isCountdownActive) {
                 selectionTimer.start()
                 timerBarAnimation.resume()
             }
@@ -419,14 +383,18 @@ Item {
 
 
     function nextRound() {
-        currentRound++
-        if (!moduleData.endlessMode && currentRound > maxRounds) {
+        if (isGameOver) return
+
+        if (!moduleData.endlessMode && (currentRound + 1) >= maxRounds) {
             figuresData = []
             figureGameOverOverlay.visible = true
             return
         }
+
+        currentRound++
         generateFigures()
     }
+
 
     function generateFigures() {
         if (playArea.width === 0 || playArea.height === 0) {
@@ -485,19 +453,48 @@ Item {
 
         figuresData = newFigures
 
+        let duration;
+        if (difficulty === 1) {
+            duration = -1; // бесконечно
+        } else {
+            // от 5000 мс до 2000 мс при увеличении сложности
+            duration = 5000 - (difficulty - 2) * 750
+            duration = Math.max(duration, 1500)
+        }
+
+        if (duration === -1) {
+            selectionTimer.stop()
+            timerBarAnimation.stop()
+            timerBar.width = timerBarBackground.width
+            timerBar.visible = false
+        } else {
+            selectionTimer.interval = duration
+            selectionTimer.restart()
+            timerBar.width = timerBarBackground.width
+            timerBarAnimation.duration = duration
+            timerBarAnimation.start()
+            timerBar.visible = true
+        }
+
+
         selectionTimer.restart()
         timerBar.width = timerBarBackground.width
         timerBarAnimation.start()
+
     }
 
     function endGame() {
+        if (awaitingNextRound && selectedIndex !== -1)
+            currentRound++  // учесть текущий выбор, если раунд не завершён
+
         isPaused = false
+        isGameOver = true
         selectionTimer.stop()
         timerBarAnimation.stop()
+        nextRoundDelay.stop()
         figuresData = []
         figureGameOverOverlay.visible = true
     }
-
 
     Component.onCompleted: startCountdown()
 }

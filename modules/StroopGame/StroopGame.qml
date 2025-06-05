@@ -20,6 +20,8 @@ Item {
         property string currentColor: ""
         property string correctAnswer: ""
 
+        property var buttonTextColors: []
+
         property int correctCount: 0
 
         property string selectedAnswer: ""
@@ -180,10 +182,12 @@ Item {
                     gameArea.timeLeft -= 0.1
                     if (gameArea.timeLeft <= 0) {
                         countdownTimer.stop()
-                        gameArea.nextRound()
+                        //gameArea.currentRound++  // добавляем здесь, если раунд завершился по таймеру
+                        gameArea.nextRound(false) // передаем, что раунд закончился по таймеру
                     }
                 }
             }
+
         }
 
         Timer {
@@ -193,14 +197,15 @@ Item {
             repeat: false
             onTriggered: {
                 gameArea.selectedAnswer = ""
-                gameArea.nextRound()
+                gameArea.nextRound(true)  // после ответа
             }
         }
+
 
         function startGame() {
             gameArea.score = 0
             gameArea.correctCount = 0  // <- сброс
-            gameArea.currentRound = 0
+            gameArea.currentRound = -1
             gameOverOverlay.visible = false
             gameArea.isPaused = false
 
@@ -213,15 +218,18 @@ Item {
         }
 
 
-        function nextRound() {
+        function nextRound(isUserAnswer = false) {
             if (!moduleData.endlessMode && gameArea.currentRound >= gameArea.maxRounds) {
                 gameOverOverlay.visible = true
                 countdownTimer.stop()
                 return
             }
+            console.log("Цвета кнопок:", gameArea.buttonTextColors.join(", "))
 
             if (!gameArea.isPaused) {
-                // ⚠️ Никаких увеличений здесь
+                gameArea.currentRound++
+
+                // Подготовка нового слова и цвета
                 let wordIndex = Math.floor(Math.random() * gameArea.colorNames.length)
                 let colorIndex = Math.floor(Math.random() * gameArea.colorValues.length)
 
@@ -229,11 +237,19 @@ Item {
                 gameArea.currentColor = gameArea.colorValues[colorIndex]
                 gameArea.correctAnswer = gameArea.colorNames[colorIndex]
 
+                // Генерируем массив случайных цветов для кнопок (тексты)
+                let newColors = []
+                for (let i = 0; i < gameArea.colorNames.length; i++) {
+                    let randomColorIndex = Math.floor(Math.random() * gameArea.colorValues.length)
+                    newColors.push(gameArea.colorValues[randomColorIndex])
+                }
+                gameArea.buttonTextColors = newColors
+
+
                 gameArea.timeLeft = gameArea.roundDuration / 1000.0
                 countdownTimer.restart()
             }
         }
-
 
         function checkAnswer(answer) {
             if (gameArea.isPaused) return
@@ -241,7 +257,8 @@ Item {
             selectedAnswer = answer
             answerCorrect = (answer === correctAnswer)
 
-            gameArea.currentRound++  // ✅ теперь только здесь, после ответа
+            // убираем это увеличение:
+            // gameArea.currentRound++
 
             if (answerCorrect) {
                 gameArea.score++
@@ -250,7 +267,6 @@ Item {
 
             answerFeedbackTimer.start()
         }
-
 
 
         Item {
@@ -296,6 +312,9 @@ Item {
                 Repeater {
                     model: gameArea.colorNames
                     delegate: Button {
+                        required property string modelData
+                        required property int index
+
                         text: modelData
                         enabled: !gameArea.isCountdownActive && gameArea.selectedAnswer === ""
                         onClicked: gameArea.checkAnswer(modelData)
@@ -306,9 +325,9 @@ Item {
                         background: Rectangle {
                             color: {
                                 if (gameArea.selectedAnswer === modelData) {
-                                    return gameArea.answerCorrect ? "#4caf50" : "#b00020" // зелёный/красный
+                                    return gameArea.answerCorrect ? "#4caf50" : "#b00020"
                                 } else {
-                                    return Material.theme === Material.Dark ? "#2c3e50" : "#eeeeee"
+                                    return Material.theme === Material.Dark ? "#2c3e50" : "#A9A9A9"
                                 }
                             }
                             border.color: Material.theme === Material.Dark ? "#aaaaaa" : "#444444"
@@ -324,12 +343,25 @@ Item {
 
                         contentItem: Text {
                             text: modelData
-                            color: Material.theme === Material.Dark ? "white" : "black"
+                            color: gameArea.buttonTextColors[index] !== undefined
+                                ? gameArea.buttonTextColors[index]
+                                : (Material.theme === Material.Dark ? "white" : "black")
                             font.pixelSize: 24
+                            font.bold: true
                             horizontalAlignment: Text.AlignHCenter
                             verticalAlignment: Text.AlignVCenter
                             anchors.fill: parent
                             padding: 6
+
+                            layer.enabled: color === "white" && Material.theme === Material.Light
+                            layer.effect: DropShadow {
+                                color: "black"
+                                radius: 4
+                                samples: 16
+                                horizontalOffset: 0
+                                verticalOffset: 0
+                                transparentBorder: true
+                            }
                         }
                     }
                 }
